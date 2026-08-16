@@ -58,6 +58,7 @@ export class FloatingHUD {
     pipBtn?: HTMLButtonElement;
     mediaTitleDisplay?: HTMLElement;
     mediaBadgesContainer?: HTMLElement;
+    titleContainer?: HTMLElement;
   } = {};
 
   constructor(controller: IMediaController, config: HUDConfig) {
@@ -164,6 +165,7 @@ export class FloatingHUD {
     if (this.titlebarElement) {
       this.elements.mediaTitleDisplay = this.titlebarElement.querySelector('#media-title-display') as HTMLElement;
       this.elements.mediaBadgesContainer = this.titlebarElement.querySelector('#media-badges-container') as HTMLElement;
+      this.elements.titleContainer = this.titlebarElement.querySelector('#title-container') as HTMLElement;
     }
   }
 
@@ -531,6 +533,10 @@ export class FloatingHUD {
       const rawTitle = state.currentMedia?.title || '';
       if (rawTitle) {
         const parsed = parseMediaDisplayTitle(rawTitle);
+        if (this.elements.titleContainer) {
+          this.elements.titleContainer.style.display = 'flex';
+          this.elements.titleContainer.style.opacity = '1';
+        }
         if (this.elements.mediaTitleDisplay) {
           this.elements.mediaTitleDisplay.textContent = parsed.cleanTitle;
           this.elements.mediaTitleDisplay.title = rawTitle; // full title on tooltip
@@ -541,15 +547,18 @@ export class FloatingHUD {
             .join('');
         }
       } else {
+        if (this.elements.titleContainer) {
+          this.elements.titleContainer.style.display = 'none';
+          this.elements.titleContainer.style.opacity = '0';
+        }
         if (this.elements.mediaTitleDisplay) {
-          this.elements.mediaTitleDisplay.textContent = 'Cimo Player';
+          this.elements.mediaTitleDisplay.textContent = '';
           this.elements.mediaTitleDisplay.title = '';
         }
         if (this.elements.mediaBadgesContainer) {
           this.elements.mediaBadgesContainer.innerHTML = '';
         }
       }
-
       if (this.elements.timeDuration) {
         this.elements.timeDuration.textContent = this.formatTime(state.duration);
       }

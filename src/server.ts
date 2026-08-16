@@ -55,11 +55,10 @@ export function startCimoServer(options?: ServerOptions): ServerInstance {
       }
 
       // Static Logo and Asset routes
-      if (pathname === '/logo.svg' || pathname === '/assets/logo.svg' || pathname === '/favicon.ico') {
-        const file = Bun.file(join(import.meta.dir, 'ui/assets/logo.svg'));
+      if (pathname === '/icon.svg' || pathname === '/assets/icon.svg' || pathname === '/logo.svg' || pathname === '/assets/logo.svg' || pathname === '/favicon.ico') {
+        const file = Bun.file(join(import.meta.dir, 'ui/assets/icon.svg'));
         return new Response(file, { headers: { 'Content-Type': 'image/svg+xml' } });
       }
-
       if (pathname === '/logo.png' || pathname === '/assets/logo.png') {
         const file = Bun.file(join(import.meta.dir, 'ui/assets/logo.png'));
         return new Response(file, { headers: { 'Content-Type': 'image/png' } });
