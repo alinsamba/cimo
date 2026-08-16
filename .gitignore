@@ -9,7 +9,7 @@ src/ui/app.js
 
 # SQLite databases
 *.db
-*.db-journal
+*.db*
 *.sqlite
 *.sqlite3
 
