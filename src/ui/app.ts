@@ -12,6 +12,13 @@ import { AudioDSPManager } from '../engine/audio';
 import { MediaSessionAdapter } from '../os/mediasession';
 import type { SubtitleTrack, MediaItem } from '../core/types';
 
+declare global {
+  interface Window {
+    __cimoApp?: CimoApp;
+  }
+}
+import type { SubtitleTrack, MediaItem } from '../core/types';
+
 export class CimoApp {
   private controller!: MediaController;
   private videoEngine!: VideoEngine;
@@ -90,8 +97,58 @@ export class CimoApp {
       drawerElement: drawerEl,
       onOpenFiles: () => this.triggerMediaFilePicker(),
       onOpenFolder: () => this.triggerFolderPicker(),
+      onGetHistory: async () => {
+        try {
+          const res = await fetch('/api/history');
+          const data = await res.json();
+          return data.history || [];
+        } catch {
+          return [];
+        }
+      },
+      onClearHistory: async () => {
+        try {
+          await fetch('/api/history', { method: 'DELETE' });
+        } catch {}
+      },
+      onGetPlaylists: async () => {
+        try {
+          const res = await fetch('/api/playlists');
+          const data = await res.json();
+          return data.playlists || [];
+        } catch {
+          return [];
+        }
+      },
+      onCreatePlaylist: async (name: string) => {
+        const res = await fetch('/api/playlists', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name }),
+        });
+        const data = await res.json();
+        return data.playlist;
+      },
+      onLoadPlaylist: async (id: string) => {
+        try {
+          const res = await fetch(`/api/playlists/${id}`);
+          const data = await res.json();
+          if (data.items && data.items.length > 0) {
+            this.controller.setQueue(data.items, 0);
+          }
+        } catch {}
+      },
+      onGetAllMedia: async (search?: string) => {
+        try {
+          const url = search ? `/api/media?search=${encodeURIComponent(search)}` : '/api/media';
+          const res = await fetch(url);
+          const data = await res.json();
+          return data.items || [];
+        } catch {
+          return [];
+        }
+      },
     });
-
     // 8. Shortcuts Engine
     this.shortcuts = new ShortcutEngine(this.controller, (customAction) => {
       if (customAction === 'toggleFullscreen') {
@@ -117,7 +174,7 @@ export class CimoApp {
     this.bindDragAndDrop();
     this.bindFileInputs();
     this.bindSubtitleUpdates();
-
+    window.__cimoApp = this;
     this.isInitialized = true;
     console.log('Cimo Media Player initialized successfully.');
   }

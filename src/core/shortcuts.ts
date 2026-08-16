@@ -342,7 +342,13 @@ export class ShortcutEngine {
       },
     });
 
-    // Library Drawer toggle (d)
+    // Library Drawer toggle (Tab / d)
+    this.register({
+      key: 'Tab',
+      code: 'Tab',
+      description: 'Toggle Library Drawer',
+      action: () => this.onCustomAction?.('toggleDrawer'),
+    });
     this.register({
       key: 'd',
       code: 'KeyD',

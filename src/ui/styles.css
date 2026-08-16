@@ -33,6 +33,11 @@
   -webkit-user-select: none;
 }
 
+*:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 body, html {
   width: 100%;
   height: 100%;
@@ -562,123 +567,218 @@ body, html {
   font-weight: 600;
 }
 
-/* Slide-out Drawer */
+/* ==========================================================================
+   Slide-out Library Drawer (Redesigned with Segmented Tabs & Persistent Dock)
+   ========================================================================== */
 .library-drawer {
   position: absolute;
   top: 0;
   right: 0;
   bottom: 0;
-  width: min(390px, 90vw);
-  background: rgba(12, 12, 18, 0.94);
-  backdrop-filter: blur(32px) saturate(200%);
-  -webkit-backdrop-filter: blur(32px) saturate(200%);
-  border-left: 1px solid var(--border-subtle);
+  width: min(400px, 92vw);
+  background: rgba(14, 14, 20, 0.86);
+  backdrop-filter: blur(28px) saturate(200%);
+  -webkit-backdrop-filter: blur(28px) saturate(200%);
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
   z-index: 60;
   display: flex;
   flex-direction: column;
   transform: translateX(100%);
   transition: transform var(--transition-smooth);
-  box-shadow: -15px 0 35px rgba(0, 0, 0, 0.7);
+  box-shadow: -20px 0 50px rgba(0, 0, 0, 0.75);
 }
 
 .library-drawer.open {
   transform: translateX(0);
 }
 
+/* 1. Drawer Header */
 .drawer-header {
-  padding: 1.1rem 1.25rem;
+  padding: 1.1rem 1.25rem 0.75rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid var(--border-subtle);
+}
+
+.drawer-header-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
 }
 
 .drawer-title {
   font-size: 1.05rem;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: -0.01em;
   color: var(--text-primary);
 }
 
+.drawer-count-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.08);
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-full);
+}
+
+/* 2. Top Segmented Pill Tab Bar */
+.drawer-tabs-wrapper {
+  padding: 0 1.25rem 0.6rem;
+}
+
+.drawer-tabs {
+  display: flex;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 3px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  gap: 2px;
+}
+
+.drawer-tab {
+  flex: 1;
+  padding: 0.45rem 0.2rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  text-align: center;
+  transition: all var(--transition-fast);
+}
+
+.drawer-tab:hover {
+  color: var(--text-primary);
+}
+
+.drawer-tab.active {
+  background: var(--accent);
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 2px 8px var(--accent-glow);
+}
+
+/* 3. Contextual Search Bar */
 .drawer-search {
-  padding: 0.75rem 1.25rem;
-  border-bottom: 1px solid var(--border-subtle);
+  padding: 0 1.25rem 0.75rem;
+}
+
+.search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.search-icon {
+  position: absolute;
+  left: 0.8rem;
+  color: var(--text-muted);
+  pointer-events: none;
 }
 
 .search-input {
   width: 100%;
   background: rgba(255, 255, 255, 0.06);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  padding: 0.5rem 0.8rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+  padding: 0.5rem 2rem 0.5rem 2.2rem;
   color: var(--text-primary);
-  font-size: 0.85rem;
+  font-size: 0.84rem;
   outline: none;
-  transition: border-color var(--transition-fast);
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
 }
 
 .search-input:focus {
   border-color: var(--accent);
+  background: rgba(255, 255, 255, 0.09);
 }
 
-.drawer-tabs {
-  display: flex;
-  padding: 0.5rem 1.25rem;
-  gap: 0.5rem;
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-.drawer-tab {
-  padding: 0.4rem 0.8rem;
-  border-radius: var(--radius-sm);
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-  cursor: pointer;
+.btn-clear-search {
+  position: absolute;
+  right: 0.6rem;
   background: transparent;
   border: none;
-  transition: all var(--transition-fast);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 0.2rem;
+  border-radius: 50%;
 }
 
-.drawer-tab.active {
-  background: rgba(255, 255, 255, 0.12);
+.btn-clear-search:hover {
   color: var(--text-primary);
-  font-weight: 600;
 }
 
+/* 4. Scrollable List Content */
 .drawer-content {
   flex: 1;
   overflow-y: auto;
-  padding: 0.5rem;
+  padding: 0.25rem 1.25rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
 }
 
+/* Two-Line Informative Media List Item */
 .media-list-item {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0.65rem 0.8rem;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   cursor: pointer;
-  transition: background-color var(--transition-fast);
-  margin-bottom: 0.25rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid transparent;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
+  overflow: hidden;
 }
 
 .media-list-item:hover {
   background-color: var(--bg-surface-hover);
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
 .media-list-item.active {
-  background-color: rgba(99, 102, 241, 0.16);
-  border: 1px solid rgba(99, 102, 241, 0.3);
+  background-color: rgba(99, 102, 241, 0.15);
+  border-color: rgba(99, 102, 241, 0.35);
+}
+
+.media-item-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  overflow: hidden;
+  flex: 1;
+}
+
+.media-item-index {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  width: 18px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.media-list-item.active .media-item-index {
+  color: var(--accent);
+  font-weight: 700;
 }
 
 .media-item-info {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  gap: 0.25rem;
   overflow: hidden;
 }
 
 .media-item-title {
-  font-size: 0.85rem;
+  font-size: 0.86rem;
   font-weight: 500;
   color: var(--text-primary);
   white-space: nowrap;
@@ -686,9 +786,171 @@ body, html {
   text-overflow: ellipsis;
 }
 
-.media-item-subtitle {
-  font-size: 0.75rem;
+.media-list-item.active .media-item-title {
+  color: #fff;
+  font-weight: 600;
+}
+
+/* Second Metadata Sub-Row */
+.media-item-subrow {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.72rem;
   color: var(--text-muted);
+}
+
+.item-badge {
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 0.1rem 0.35rem;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.item-duration {
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+}
+
+.item-meta-dot {
+  font-size: 0.5rem;
+  color: var(--text-muted);
+}
+
+/* Progress bar along bottom of history row */
+.item-progress-track {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.item-progress-fill {
+  height: 100%;
+  background: var(--accent);
+}
+
+/* Contextual Hover Quick Actions */
+.item-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  opacity: 0;
+  transform: translateX(4px);
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+  flex-shrink: 0;
+  margin-left: 0.5rem;
+}
+
+.media-list-item:hover .item-actions {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.btn-item-action {
+  background: rgba(255, 255, 255, 0.08);
+  border: none;
+  color: var(--text-secondary);
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.btn-item-action:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.btn-item-action.btn-danger:hover {
+  background: rgba(239, 68, 68, 0.25);
+  color: var(--accent-danger);
+}
+
+/* 5. Pinned Persistent Footer Bar */
+.drawer-footer {
+  padding: 0.85rem 1.25rem;
+  background: rgba(10, 10, 15, 0.92);
+  backdrop-filter: blur(16px);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.drawer-footer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.btn-footer-action {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  font-size: 0.78rem;
+  font-weight: 500;
+  padding: 0.45rem 0.75rem;
+  border-radius: var(--radius-md);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.btn-footer-action:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.drawer-footer-dynamic {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* Info Popover Modal */
+.item-info-modal {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(20, 20, 28, 0.98);
+  backdrop-filter: blur(24px);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  width: 320px;
+  box-shadow: var(--shadow-lg);
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+}
+
+.info-label {
+  color: var(--text-muted);
+}
+
+.info-value {
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-weight: 500;
 }
 
 /* Gesture Feedback HUD Overlay */

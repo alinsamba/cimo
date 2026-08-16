@@ -26,7 +26,7 @@
             <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
           </svg>
         </button>
-        <button id="btn-top-drawer" class="btn-icon" title="Toggle Library Drawer">
+        <button id="btn-top-drawer" class="btn-icon" title="Toggle Library Drawer (Tab / D)">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="8" y1="6" x2="21" y2="6"></line>
             <line x1="8" y1="12" x2="21" y2="12"></line>
@@ -183,30 +183,67 @@
       </div>
     </div>
 
-    <!-- Slide-Out Library Drawer -->
-    <aside class="library-drawer" id="library-drawer">
+    <!-- Slide-Out Library Drawer with Segmented Pill Tabs & Persistent Footer -->
+    <aside class="library-drawer" id="library-drawer" aria-label="Media Library Drawer">
+      <!-- 1. Header with Title & Close Button -->
       <div class="drawer-header">
-        <span class="drawer-title">Media Library</span>
-        <button id="btn-close-drawer" class="btn-icon" title="Close">✕</button>
+        <div class="drawer-header-title-wrap">
+          <span class="drawer-title">Media Library</span>
+          <span class="drawer-count-badge" id="drawer-item-count">0 items</span>
+        </div>
+        <button id="btn-close-drawer" class="btn-icon" title="Close Drawer (Esc)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
       </div>
 
+      <!-- 2. Segmented Pill Tab Bar directly below header -->
+      <div class="drawer-tabs-wrapper">
+        <div class="drawer-tabs" role="tablist">
+          <button class="drawer-tab active" data-tab="queue" role="tab" aria-selected="true" tabindex="0">Queue</button>
+          <button class="drawer-tab" data-tab="playlists" role="tab" aria-selected="false" tabindex="0">Playlists</button>
+          <button class="drawer-tab" data-tab="history" role="tab" aria-selected="false" tabindex="0">History</button>
+          <button class="drawer-tab" data-tab="media" role="tab" aria-selected="false" tabindex="0">All Media</button>
+        </div>
+      </div>
+
+      <!-- 3. Contextual Search Bar -->
       <div class="drawer-search">
-        <input type="text" id="drawer-search-input" class="search-input" placeholder="Search title or artist...">
+        <div class="search-input-wrapper">
+          <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" id="drawer-search-input" class="search-input" placeholder="Search queue..." aria-label="Search library">
+          <button id="btn-clear-search" class="btn-clear-search" title="Clear search" style="display: none;">✕</button>
+        </div>
       </div>
 
-      <div class="drawer-tabs">
-        <button class="drawer-tab active" data-tab="queue">Queue</button>
-        <button class="drawer-tab" data-tab="playlists">Playlists</button>
-        <button class="drawer-tab" data-tab="history">History</button>
-        <button class="drawer-tab" data-tab="media">Library</button>
-      </div>
+      <!-- 4. Scrollable List Content Area -->
+      <div class="drawer-content" id="drawer-content-area" tabindex="0" role="region" aria-label="Library Content"></div>
 
-      <div style="display: flex; gap: 0.5rem; padding: 0.5rem 1.25rem; border-bottom: 1px solid var(--border-subtle);">
-        <button id="btn-drawer-open-files" class="btn-icon" style="width: auto; padding: 0 0.6rem; font-size: 0.75rem;">+ Open Files</button>
-        <button id="btn-drawer-open-folder" class="btn-icon" style="width: auto; padding: 0 0.6rem; font-size: 0.75rem;">+ Scan Folder</button>
+      <!-- 5. Persistent Pinned Bottom Utility Dock -->
+      <div class="drawer-footer" id="drawer-footer">
+        <div class="drawer-footer-actions">
+          <button id="btn-drawer-open-files" class="btn-footer-action" title="Open local media files">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+            </svg>
+            <span>+ Files</span>
+          </button>
+          <button id="btn-drawer-open-folder" class="btn-footer-action" title="Scan directory for media">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+              <line x1="12" y1="11" x2="12" y2="17"></line>
+              <line x1="9" y1="14" x2="15" y2="14"></line>
+            </svg>
+            <span>+ Folder</span>
+          </button>
+          <div class="drawer-footer-dynamic" id="drawer-footer-dynamic"></div>
+        </div>
       </div>
-
-      <div class="drawer-content" id="drawer-content-area"></div>
     </aside>
 
     <!-- Drag and Drop Overlay -->
