@@ -15,6 +15,11 @@ import { ContextMenuManager } from './contextmenu';
 import { computeMediaFingerprint } from '../core/fingerprint';
 import { SmartResumeTracker, type PlaybackResumeState } from '../core/resume';
 import type { SubtitleTrack, MediaItem } from '../core/types';
+import {
+  generateMaterial3Schemes,
+  extractDominantColorFromImageData,
+  applyMaterialThemeToDom,
+} from '../core/material';
 
 declare global {
   interface Window {
@@ -298,6 +303,8 @@ export class CimoApp {
       if (watermarkImg) {
         watermarkImg.src = isDark ? '/watermark-white.png' : '/watermark-black.png';
       }
+      const schemes = generateMaterial3Schemes('#a855f7');
+      applyMaterialThemeToDom(isDark ? schemes.dark : schemes.light, isDark);
     };
 
     updateThemeAndWatermark(darkQuery.matches);
@@ -305,14 +312,37 @@ export class CimoApp {
     try {
       darkQuery.addEventListener('change', (e) => {
         updateThemeAndWatermark(e.matches);
+        this.extractAndApplyDynamicTheme();
       });
     } catch {
       darkQuery.addListener?.((e) => {
         updateThemeAndWatermark(e.matches);
+        this.extractAndApplyDynamicTheme();
       });
     }
   }
 
+  public extractAndApplyDynamicTheme(): void {
+    const video = this.videoEngine.getVideoElement();
+    if (!video || video.videoWidth === 0 || video.videoHeight === 0) return;
+
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width = 64;
+      canvas.height = 64;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(video, 0, 0, 64, 64);
+        const imgData = ctx.getImageData(0, 0, 64, 64);
+        const dominantHex = extractDominantColorFromImageData(imgData.data);
+        const schemes = generateMaterial3Schemes(dominantHex);
+        const isDark = !window.matchMedia || window.matchMedia('(prefers-color-scheme: dark)').matches;
+        applyMaterialThemeToDom(isDark ? schemes.dark : schemes.light, isDark);
+      }
+    } catch {
+      // Cross-origin fallback safe
+    }
+  }
   private bindPlaybackResumeHooks(): void {
     const video = this.videoEngine.getVideoElement();
 
@@ -338,12 +368,17 @@ export class CimoApp {
     });
 
     if (video) {
+      video.addEventListener('loadeddata', () => {
+        this.extractAndApplyDynamicTheme();
+      });
+      video.addEventListener('seeked', () => {
+        this.extractAndApplyDynamicTheme();
+      });
       video.addEventListener('timeupdate', () => {
         if (this.currentFileHash) {
           this.resumeTracker.updatePlayback(video.currentTime, !video.paused, video.duration);
         }
       });
-
       video.addEventListener('pause', () => {
         const state = this.controller.getState();
         this.resumeTracker.onPauseOrExit(
