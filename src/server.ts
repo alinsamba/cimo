@@ -20,7 +20,7 @@ export interface ServerInstance {
 }
 
 export function startCimoServer(options?: ServerOptions): ServerInstance {
-  const port = options?.port || 3000;
+  const port = typeof options?.port === 'number' ? options.port : 3000;
   const host = options?.host || '127.0.0.1';
   const db = new MediaDatabase(options?.dbPath || 'cimo.db');
   const scanner = new DirectoryScanner(db);

@@ -1,4 +1,5 @@
 import type { IMediaController, PlayerState, SubtitleTrack, AudioTrack, AspectRatio } from '../core/types';
+import { parseMediaDisplayTitle } from '../core/title';
 
 export interface HUDConfig {
   hudElement: HTMLElement;
@@ -44,7 +45,7 @@ export class FloatingHUD {
     volumeBtn?: HTMLButtonElement;
     volumeSliderContainer?: HTMLElement;
     volumeSliderFill?: HTMLElement;
-    volumeLabel?: HTMLElement;
+    volumeTooltip?: HTMLElement;
     speedBtn?: HTMLButtonElement;
     speedMenu?: HTMLElement;
     subtitlesBtn?: HTMLButtonElement;
@@ -55,8 +56,8 @@ export class FloatingHUD {
     aspectRatioMenu?: HTMLElement;
     fullscreenBtn?: HTMLButtonElement;
     pipBtn?: HTMLButtonElement;
-    drawerBtn?: HTMLButtonElement;
     mediaTitleDisplay?: HTMLElement;
+    mediaBadgesContainer?: HTMLElement;
   } = {};
 
   constructor(controller: IMediaController, config: HUDConfig) {
@@ -107,7 +108,7 @@ export class FloatingHUD {
     this.titlebarElement?.classList.remove('hidden');
     this.videoStageElement.classList.remove('idle');
 
-    if (!this.isHoveringHUD && !this.isScrubbing) {
+    if (!this.isHoveringHUD && !this.isScrubbing && !this.isVolumeDragging) {
       this.idleTimer = setTimeout(() => {
         const state = this.controller.getState();
         if (state.status === 'playing') {
@@ -148,7 +149,7 @@ export class FloatingHUD {
     this.elements.volumeBtn = root.querySelector('#btn-volume') as HTMLButtonElement;
     this.elements.volumeSliderContainer = root.querySelector('#volume-slider-container') as HTMLElement;
     this.elements.volumeSliderFill = root.querySelector('#volume-slider-fill') as HTMLElement;
-    this.elements.volumeLabel = root.querySelector('#volume-label') as HTMLElement;
+    this.elements.volumeTooltip = root.querySelector('#volume-tooltip') as HTMLElement;
     this.elements.speedBtn = root.querySelector('#btn-speed') as HTMLButtonElement;
     this.elements.speedMenu = root.querySelector('#speed-menu') as HTMLElement;
     this.elements.subtitlesBtn = root.querySelector('#btn-subtitles') as HTMLButtonElement;
@@ -159,10 +160,10 @@ export class FloatingHUD {
     this.elements.aspectRatioMenu = root.querySelector('#aspect-ratio-menu') as HTMLElement;
     this.elements.fullscreenBtn = root.querySelector('#btn-fullscreen') as HTMLButtonElement;
     this.elements.pipBtn = root.querySelector('#btn-pip') as HTMLButtonElement;
-    this.elements.drawerBtn = root.querySelector('#btn-drawer') as HTMLButtonElement;
 
     if (this.titlebarElement) {
       this.elements.mediaTitleDisplay = this.titlebarElement.querySelector('#media-title-display') as HTMLElement;
+      this.elements.mediaBadgesContainer = this.titlebarElement.querySelector('#media-badges-container') as HTMLElement;
     }
   }
 
@@ -170,7 +171,6 @@ export class FloatingHUD {
     // Activity tracking on video stage
     this.videoStageElement.addEventListener('mousemove', () => this.resetIdleTimer());
     this.videoStageElement.addEventListener('click', (e) => {
-      // Toggle play/pause if clicked on background
       if (e.target === this.videoStageElement || (e.target as HTMLElement).tagName === 'VIDEO') {
         this.controller.togglePlay();
       }
@@ -220,10 +220,9 @@ export class FloatingHUD {
     // Aspect Ratio Popover
     this.setupAspectRatioMenu();
 
-    // Fullscreen / PiP / Drawer
+    // Fullscreen / PiP
     this.elements.fullscreenBtn?.addEventListener('click', () => this.onToggleFullscreen?.());
     this.elements.pipBtn?.addEventListener('click', () => this.onTogglePiP?.());
-    this.elements.drawerBtn?.addEventListener('click', () => this.onToggleDrawer?.());
 
     // Close popovers on click outside
     document.addEventListener('click', (e) => {
@@ -291,7 +290,6 @@ export class FloatingHUD {
 
     const handleVolumeChange = (e: MouseEvent) => {
       const rect = container.getBoundingClientRect();
-      // Allow dragging up to 200% (width fraction * 2.0)
       const fraction = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
       const targetVolume = Math.round(fraction * 200) / 100; // 0.0 to 2.0
       this.controller.setVolume(targetVolume);
@@ -498,9 +496,28 @@ export class FloatingHUD {
   private bindControllerListeners(): void {
     // Media change
     const onMediaUpdate = (state: PlayerState) => {
-      if (this.elements.mediaTitleDisplay) {
-        this.elements.mediaTitleDisplay.textContent = state.currentMedia?.title || 'Cimo Player';
+      const rawTitle = state.currentMedia?.title || '';
+      if (rawTitle) {
+        const parsed = parseMediaDisplayTitle(rawTitle);
+        if (this.elements.mediaTitleDisplay) {
+          this.elements.mediaTitleDisplay.textContent = parsed.cleanTitle;
+          this.elements.mediaTitleDisplay.title = rawTitle; // full title on tooltip
+        }
+        if (this.elements.mediaBadgesContainer) {
+          this.elements.mediaBadgesContainer.innerHTML = parsed.badges
+            .map((b) => `<span class="title-badge">${b}</span>`)
+            .join('');
+        }
+      } else {
+        if (this.elements.mediaTitleDisplay) {
+          this.elements.mediaTitleDisplay.textContent = 'Cimo Player';
+          this.elements.mediaTitleDisplay.title = '';
+        }
+        if (this.elements.mediaBadgesContainer) {
+          this.elements.mediaBadgesContainer.innerHTML = '';
+        }
       }
+
       if (this.elements.timeDuration) {
         this.elements.timeDuration.textContent = this.formatTime(state.duration);
       }
@@ -537,17 +554,16 @@ export class FloatingHUD {
       const vol = data.muted ? 0 : data.volume;
       const pct = Math.round(vol * 100);
 
-      if (this.elements.volumeLabel) {
-        this.elements.volumeLabel.textContent = `${pct}%`;
+      if (this.elements.volumeTooltip) {
+        this.elements.volumeTooltip.textContent = pct > 100 ? `${pct}% ⚡` : `${pct}%`;
         if (pct > 100) {
-          this.elements.volumeLabel.classList.add('boosted');
+          this.elements.volumeTooltip.classList.add('boosted');
         } else {
-          this.elements.volumeLabel.classList.remove('boosted');
+          this.elements.volumeTooltip.classList.remove('boosted');
         }
       }
 
       if (this.elements.volumeSliderFill) {
-        // Slider width represents 0% to 200% (volume 0.0 - 2.0)
         const fillWidth = Math.min(100, (vol / 2.0) * 100);
         this.elements.volumeSliderFill.style.width = `${fillWidth}%`;
 
@@ -601,7 +617,7 @@ export class FloatingHUD {
       `;
     } else {
       this.elements.playPauseBtn.innerHTML = `
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
           <polygon points="5 3 19 12 5 21 5 3"></polygon>
         </svg>
       `;
