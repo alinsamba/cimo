@@ -201,6 +201,23 @@ export class CimoApp {
     this.bindFileInputs();
     this.bindSubtitleUpdates();
     this.bindPlaybackResumeHooks();
+    this.bindThemeSensing();
+
+    this.controller.on('mediachange', (media) => {
+      if (media) {
+        videoStage.classList.add('has-media');
+      } else {
+        videoStage.classList.remove('has-media');
+      }
+    });
+
+    this.controller.on('statuschange', (status) => {
+      if (status === 'playing') {
+        videoStage.classList.add('playing');
+      } else {
+        videoStage.classList.remove('playing');
+      }
+    });
 
     window.__cimoApp = this;
     this.isInitialized = true;
@@ -270,6 +287,30 @@ export class CimoApp {
     document.getElementById('btn-top-drawer')?.addEventListener('click', () => {
       this.drawer.toggle();
     });
+  }
+
+  private bindThemeSensing(): void {
+    if (typeof window === 'undefined' || !window.matchMedia) return;
+
+    const darkQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const updateThemeAndWatermark = (isDark: boolean) => {
+      const watermarkImg = document.getElementById('watermark-image') as HTMLImageElement | null;
+      if (watermarkImg) {
+        watermarkImg.src = isDark ? '/watermark-white.png' : '/watermark-black.png';
+      }
+    };
+
+    updateThemeAndWatermark(darkQuery.matches);
+
+    try {
+      darkQuery.addEventListener('change', (e) => {
+        updateThemeAndWatermark(e.matches);
+      });
+    } catch {
+      darkQuery.addListener?.((e) => {
+        updateThemeAndWatermark(e.matches);
+      });
+    }
   }
 
   private bindPlaybackResumeHooks(): void {

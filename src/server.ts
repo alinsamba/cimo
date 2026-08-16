@@ -69,6 +69,16 @@ export function startCimoServer(options?: ServerOptions): ServerInstance {
         const file = Bun.file(join(import.meta.dir, 'ui/assets/logo-nobg.png'));
         return new Response(file, { headers: { 'Content-Type': 'image/png' } });
       }
+
+      if (pathname === '/watermark-white.png' || pathname === '/assets/watermark-white.png') {
+        const file = Bun.file(join(import.meta.dir, 'ui/assets/watermark-white.png'));
+        return new Response(file, { headers: { 'Content-Type': 'image/png' } });
+      }
+
+      if (pathname === '/watermark-black.png' || pathname === '/assets/watermark-black.png') {
+        const file = Bun.file(join(import.meta.dir, 'ui/assets/watermark-black.png'));
+        return new Response(file, { headers: { 'Content-Type': 'image/png' } });
+      }
       // JS / TS Bundling on-the-fly for browser
       if (pathname === '/app.ts' || pathname.endsWith('.ts') || pathname.endsWith('.js')) {
         const relPath = pathname.startsWith('/') ? pathname.slice(1) : pathname;
