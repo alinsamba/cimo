@@ -3,6 +3,7 @@ import {
   initSchema,
   type MediaItemRow,
   type PlaybackHistoryRow,
+  type PlaybackStateRow,
   type PlaylistRow,
 } from './schema';
 import type {
@@ -10,7 +11,7 @@ import type {
   PlaybackHistoryItem,
   Playlist,
 } from '../core/types';
-
+import type { PlaybackResumeState } from '../core/resume';
 export interface GetAllMediaQuery {
   search?: string;
   tag?: string;
@@ -281,6 +282,75 @@ export class MediaDatabase {
   public clearPlaybackHistory(): void {
     this.db.exec('DELETE FROM playback_history;');
   }
+  public savePlaybackResumeState(state: PlaybackResumeState): void {
+    const completedInt = state.completed ? 1 : 0;
+    const now = state.updatedAt || Date.now();
+
+    this.db.prepare<
+      void,
+      [string, string | null, number, number, string | null, string | null, number, number, number]
+    >(`
+      INSERT INTO playback_state (
+        file_hash, canonical_path, position_ms, duration_ms, audio_track_id, subtitle_track_id, volume, completed, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(file_hash) DO UPDATE SET
+        position_ms = excluded.position_ms,
+        duration_ms = excluded.duration_ms,
+        audio_track_id = excluded.audio_track_id,
+        subtitle_track_id = excluded.subtitle_track_id,
+        volume = excluded.volume,
+        completed = excluded.completed,
+        updated_at = excluded.updated_at
+    `).run(
+      state.fileHash,
+      null,
+      state.positionMs,
+      state.durationMs,
+      state.audioTrackId ?? null,
+      state.subtitleTrackId ?? null,
+      state.volume ?? 1.0,
+      completedInt,
+      now
+    );
+
+    // Auto-prune LRU entries beyond 1,000 to keep database lightweight
+    this.prunePlaybackStates(1000);
+  }
+
+  public getPlaybackResumeState(fileHash: string): PlaybackResumeState | null {
+    const row = this.db
+      .prepare<PlaybackStateRow, [string]>(
+        'SELECT * FROM playback_state WHERE file_hash = ?'
+      )
+      .get(fileHash);
+
+    if (!row) return null;
+
+    return {
+      fileHash: row.file_hash,
+      positionMs: row.position_ms,
+      durationMs: row.duration_ms,
+      audioTrackId: row.audio_track_id ?? undefined,
+      subtitleTrackId: row.subtitle_track_id ?? undefined,
+      volume: row.volume ?? 1.0,
+      completed: row.completed === 1,
+      updatedAt: row.updated_at,
+    };
+  }
+
+  public prunePlaybackStates(maxEntries: number = 1000): number {
+    const res = this.db.prepare<void, [number]>(`
+      DELETE FROM playback_state
+      WHERE file_hash NOT IN (
+        SELECT file_hash FROM playback_state
+        ORDER BY updated_at DESC
+        LIMIT ?
+      )
+    `).run(maxEntries);
+
+    return res.changes;
+  }
+
 
   public createPlaylist(name: string, description?: string): Playlist {
     const id = crypto.randomUUID();

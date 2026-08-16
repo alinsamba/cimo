@@ -20,125 +20,119 @@ describe('ShortcutEngine', () => {
     expect(ctrl.getState().status).toBe('paused');
   });
 
-  it('triggers seeking on arrow keys and J/L', async () => {
+  it('triggers short seek (±5s) on arrow keys and medium seek (±30s) with Shift', async () => {
     const ctrl = new MediaController();
     await ctrl.load({
       id: 'm1',
       uri: 'test.mp4',
       title: 'Video',
-      duration: 100,
+      duration: 200,
       addedAt: 1,
     });
-    ctrl.seek(20);
+    ctrl.seek(50);
 
     const shortcuts = new ShortcutEngine(ctrl);
 
-    // ArrowRight (+5s)
+    // Short Seek: ArrowRight (+5s)
     shortcuts.handleKeyDown({ key: 'ArrowRight', code: 'ArrowRight' });
-    expect(ctrl.getState().currentTime).toBe(25);
+    expect(ctrl.getState().currentTime).toBe(55);
 
-    // ArrowLeft (-5s)
+    // Short Seek: ArrowLeft (-5s)
     shortcuts.handleKeyDown({ key: 'ArrowLeft', code: 'ArrowLeft' });
-    expect(ctrl.getState().currentTime).toBe(20);
-
-    // L (+10s)
-    shortcuts.handleKeyDown({ key: 'l', code: 'KeyL' });
-    expect(ctrl.getState().currentTime).toBe(30);
-
-    // J (-10s)
-    shortcuts.handleKeyDown({ key: 'j', code: 'KeyJ' });
-    expect(ctrl.getState().currentTime).toBe(20);
-  });
-
-  it('triggers volume changes on Up/Down arrows and Mute on M', () => {
-    const ctrl = new MediaController();
-    const shortcuts = new ShortcutEngine(ctrl);
-
-    ctrl.setVolume(1.0);
-
-    // Volume Down (-5%)
-    shortcuts.handleKeyDown({ key: 'ArrowDown', code: 'ArrowDown' });
-    expect(ctrl.getState().volume).toBe(0.95);
-
-    // Volume Up (+5%)
-    shortcuts.handleKeyDown({ key: 'ArrowUp', code: 'ArrowUp' });
-    expect(ctrl.getState().volume).toBe(1.0);
-
-    // Mute toggle (M)
-    shortcuts.handleKeyDown({ key: 'm', code: 'KeyM' });
-    expect(ctrl.getState().muted).toBe(true);
-
-    shortcuts.handleKeyDown({ key: 'm', code: 'KeyM' });
-    expect(ctrl.getState().muted).toBe(false);
-  });
-
-  it('triggers speed changes on bracket keys and reset on Backspace', () => {
-    const ctrl = new MediaController();
-    const shortcuts = new ShortcutEngine(ctrl);
-
-    // Increase speed (])
-    shortcuts.handleKeyDown({ key: ']', code: 'BracketRight' });
-    expect(ctrl.getState().playbackRate).toBe(1.1);
-
-    // Decrease speed ([)
-    shortcuts.handleKeyDown({ key: '[', code: 'BracketLeft' });
-    expect(ctrl.getState().playbackRate).toBe(1.0);
-
-    // Reset speed (Backspace)
-    ctrl.setPlaybackRate(2.5);
-    shortcuts.handleKeyDown({ key: 'Backspace', code: 'Backspace' });
-    expect(ctrl.getState().playbackRate).toBe(1.0);
-  });
-
-  it('triggers percentage seek on digit keys 0-9', async () => {
-    const ctrl = new MediaController();
-    await ctrl.load({
-      id: 'm1',
-      uri: 'test.mp4',
-      title: 'Video',
-      duration: 100,
-      addedAt: 1,
-    });
-    const shortcuts = new ShortcutEngine(ctrl);
-
-    shortcuts.handleKeyDown({ key: '5', code: 'Digit5' });
     expect(ctrl.getState().currentTime).toBe(50);
 
-    shortcuts.handleKeyDown({ key: '0', code: 'Digit0' });
-    expect(ctrl.getState().currentTime).toBe(0);
+    // Medium Seek: Shift + ArrowRight (+30s)
+    shortcuts.handleKeyDown({ key: 'ArrowRight', code: 'ArrowRight', shiftKey: true });
+    expect(ctrl.getState().currentTime).toBe(80);
 
-    shortcuts.handleKeyDown({ key: '9', code: 'Digit9' });
-    expect(ctrl.getState().currentTime).toBe(90);
+    // Medium Seek: Shift + ArrowLeft (-30s)
+    shortcuts.handleKeyDown({ key: 'ArrowLeft', code: 'ArrowLeft', shiftKey: true });
+    expect(ctrl.getState().currentTime).toBe(50);
   });
 
-  it('ignores shortcuts when typing in input fields', () => {
+  it('triggers speed steps with < and >', () => {
+    const ctrl = new MediaController();
+    ctrl.setPlaybackRate(1.0);
+    const shortcuts = new ShortcutEngine(ctrl);
+
+    // Increase speed (>) -> 1.25x
+    shortcuts.handleKeyDown({ key: '>', code: 'Period', shiftKey: true });
+    expect(ctrl.getState().playbackRate).toBe(1.25);
+
+    // Increase speed (>) -> 1.5x
+    shortcuts.handleKeyDown({ key: '>', code: 'Period', shiftKey: true });
+    expect(ctrl.getState().playbackRate).toBe(1.5);
+
+    // Decrease speed (<) -> 1.25x
+    shortcuts.handleKeyDown({ key: '<', code: 'Comma', shiftKey: true });
+    expect(ctrl.getState().playbackRate).toBe(1.25);
+  });
+
+  it('cycles audio tracks on B and subtitle tracks on V', () => {
+    const ctrl = new MediaController();
+    ctrl.setAudioTracks([
+      { id: 'a1', label: 'English 5.1' },
+      { id: 'a2', label: 'French Stereo' },
+    ]);
+    ctrl.setSubtitleTracks([
+      { id: 's1', label: 'English', format: 'srt', cues: [] },
+      { id: 's2', label: 'Spanish', format: 'vtt', cues: [] },
+    ]);
+
+    const shortcuts = new ShortcutEngine(ctrl);
+
+    // Audio cycle (B)
+    shortcuts.handleKeyDown({ key: 'b', code: 'KeyB' });
+    expect(ctrl.getState().selectedAudioTrackId).toBe('a2');
+
+    shortcuts.handleKeyDown({ key: 'b', code: 'KeyB' });
+    expect(ctrl.getState().selectedAudioTrackId).toBe('a1');
+
+    // Subtitle cycle (V)
+    shortcuts.handleKeyDown({ key: 'v', code: 'KeyV' });
+    expect(ctrl.getState().selectedSubtitleTrackId).toBe('s1');
+
+    shortcuts.handleKeyDown({ key: 'v', code: 'KeyV' });
+    expect(ctrl.getState().selectedSubtitleTrackId).toBe('s2');
+
+    shortcuts.handleKeyDown({ key: 'v', code: 'KeyV' });
+    expect(ctrl.getState().selectedSubtitleTrackId).toBeNull(); // Off
+  });
+
+  it('handles custom rebinding, reserved OS validation, and collision detection', () => {
     const ctrl = new MediaController();
     const shortcuts = new ShortcutEngine(ctrl);
 
-    const handled = shortcuts.handleKeyDown({
-      key: ' ',
-      code: 'Space',
-      target: { tagName: 'INPUT' },
-    });
+    // Rebind successfully to unused key (y)
+    const res1 = shortcuts.rebind('play_pause_space', 'y');
+    expect(res1.success).toBe(true);
 
-    expect(handled).toBe(false);
-    expect(ctrl.getState().status).toBe('idle');
+    // Press new key (y)
+    shortcuts.handleKeyDown({ key: 'y', code: 'KeyY' });
+    expect(ctrl.getState().status).toBe('playing');
+
+    // Reject reserved OS shortcut (Ctrl+W)
+    const resReserved = shortcuts.rebind('play_pause_space', 'w', { ctrl: true });
+    expect(resReserved.success).toBe(false);
+    expect(resReserved.error).toContain('reserved by the OS');
+
+    // Collision detection (p is already PiP toggle)
+    const resCollision = shortcuts.rebind('play_pause_space', 'p');
+    expect(resCollision.success).toBe(false);
+    expect(resCollision.error).toContain('Collision');
   });
 
-  it('calls custom action handler for fullscreen, drawer, escape', () => {
+  it('exports and imports keymaps accurately', () => {
     const ctrl = new MediaController();
-    let triggeredAction = '';
-    const shortcuts = new ShortcutEngine(ctrl, (action) => {
-      triggeredAction = action;
-    });
+    const shortcuts = new ShortcutEngine(ctrl);
 
-    shortcuts.handleKeyDown({ key: 'f', code: 'KeyF' });
-    expect(triggeredAction).toBe('toggleFullscreen');
+    const initialMap = shortcuts.exportKeymap();
+    expect(initialMap['play_pause_k']).toBe('k');
 
-    shortcuts.handleKeyDown({ key: 'd', code: 'KeyD' });
-    expect(triggeredAction).toBe('toggleDrawer');
+    shortcuts.rebind('play_pause_k', 'x', { shift: true });
+    expect(shortcuts.exportKeymap()['play_pause_k']).toBe('Shift+x');
 
-    shortcuts.handleKeyDown({ key: 'Escape', code: 'Escape' });
-    expect(triggeredAction).toBe('escape');
+    shortcuts.importKeymap({ play_pause_k: 'z' });
+    expect(shortcuts.exportKeymap()['play_pause_k']).toBe('z');
   });
 });

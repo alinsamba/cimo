@@ -568,7 +568,7 @@ body, html {
 }
 
 /* ==========================================================================
-   Slide-out Library Drawer (Redesigned with Segmented Tabs & Persistent Dock)
+   Slide-out Library Drawer
    ========================================================================== */
 .library-drawer {
   position: absolute;
@@ -592,7 +592,6 @@ body, html {
   transform: translateX(0);
 }
 
-/* 1. Drawer Header */
 .drawer-header {
   padding: 1.1rem 1.25rem 0.75rem;
   display: flex;
@@ -622,7 +621,6 @@ body, html {
   border-radius: var(--radius-full);
 }
 
-/* 2. Top Segmented Pill Tab Bar */
 .drawer-tabs-wrapper {
   padding: 0 1.25rem 0.6rem;
 }
@@ -661,7 +659,6 @@ body, html {
   box-shadow: 0 2px 8px var(--accent-glow);
 }
 
-/* 3. Contextual Search Bar */
 .drawer-search {
   padding: 0 1.25rem 0.75rem;
 }
@@ -713,7 +710,6 @@ body, html {
   color: var(--text-primary);
 }
 
-/* 4. Scrollable List Content */
 .drawer-content {
   flex: 1;
   overflow-y: auto;
@@ -723,7 +719,6 @@ body, html {
   gap: 0.35rem;
 }
 
-/* Two-Line Informative Media List Item */
 .media-list-item {
   position: relative;
   display: flex;
@@ -791,7 +786,6 @@ body, html {
   font-weight: 600;
 }
 
-/* Second Metadata Sub-Row */
 .media-item-subrow {
   display: flex;
   align-items: center;
@@ -821,7 +815,6 @@ body, html {
   color: var(--text-muted);
 }
 
-/* Progress bar along bottom of history row */
 .item-progress-track {
   position: absolute;
   bottom: 0;
@@ -836,7 +829,6 @@ body, html {
   background: var(--accent);
 }
 
-/* Contextual Hover Quick Actions */
 .item-actions {
   display: flex;
   align-items: center;
@@ -877,7 +869,6 @@ body, html {
   color: var(--accent-danger);
 }
 
-/* 5. Pinned Persistent Footer Bar */
 .drawer-footer {
   padding: 0.85rem 1.25rem;
   background: rgba(10, 10, 15, 0.92);
@@ -951,6 +942,208 @@ body, html {
   color: var(--text-primary);
   font-family: var(--font-mono);
   font-weight: 500;
+}
+
+/* ==========================================================================
+   Dynamic Context Menu & Submenus
+   ========================================================================== */
+.dynamic-context-menu {
+  position: fixed;
+  z-index: 100;
+  min-width: 220px;
+  background: rgba(18, 18, 26, 0.94);
+  backdrop-filter: blur(28px) saturate(200%);
+  -webkit-backdrop-filter: blur(28px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-md);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  padding: 0.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  animation: cmenuFade 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes cmenuFade {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.cmenu-item {
+  padding: 0.45rem 0.75rem;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  position: relative;
+  transition: all var(--transition-fast);
+}
+
+.cmenu-item:hover {
+  background: var(--bg-surface-hover);
+  color: var(--text-primary);
+}
+
+.cmenu-item.cmenu-checked {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.cmenu-arrow {
+  font-size: 1rem;
+  color: var(--text-muted);
+}
+
+.cmenu-submenu {
+  position: absolute;
+  left: calc(100% + 4px);
+  top: -4px;
+  min-width: 200px;
+  background: rgba(18, 18, 26, 0.96);
+  backdrop-filter: blur(28px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-md);
+  padding: 0.35rem;
+  display: none;
+  flex-direction: column;
+  gap: 0.15rem;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8);
+  z-index: 101;
+}
+
+.cmenu-has-submenu:hover > .cmenu-submenu {
+  display: flex;
+  animation: cmenuFade 0.15s ease-out;
+}
+
+.cmenu-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  margin: 0.25rem 0;
+}
+
+.cmenu-header {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  padding: 0.25rem 0.75rem 0.15rem;
+  letter-spacing: 0.04em;
+}
+
+.cmenu-shortcut {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-left: 1rem;
+}
+
+/* ==========================================================================
+   HUD Toast System (Non-blocking Shortcut & Resume Toasts)
+   ========================================================================== */
+.toast-container {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 90;
+  overflow: hidden;
+}
+
+.hud-toast {
+  position: absolute;
+  background: rgba(18, 18, 26, 0.94);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  opacity: 0;
+  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Center-Top Shortcut Notification */
+.hud-toast-shortcut {
+  top: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(-10px);
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #fff;
+}
+
+.hud-toast-shortcut.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Top-Left Smart Resume Floating Prompt */
+.hud-toast-resume {
+  top: 1.25rem;
+  left: 1.25rem;
+  pointer-events: auto;
+  padding: 0.65rem 0.95rem;
+  font-size: 0.84rem;
+  font-weight: 500;
+  color: #fff;
+  transform: translateY(-10px);
+}
+
+.hud-toast-resume.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.toast-icon {
+  font-size: 1.1rem;
+}
+
+.toast-divider {
+  color: var(--border-subtle);
+  margin: 0 0.1rem;
+}
+
+.toast-action-btn {
+  background: var(--accent);
+  color: #ffffff;
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 0.3rem 0.65rem;
+  border-radius: var(--radius-sm);
+  border: none;
+  cursor: pointer;
+  transition: background-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.toast-action-btn:hover {
+  background: var(--accent-hover);
+  transform: scale(1.03);
+}
+
+.toast-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 0.2rem;
+  margin-left: 0.2rem;
+}
+
+.toast-close-btn:hover {
+  color: #fff;
 }
 
 /* Gesture Feedback HUD Overlay */
