@@ -153,12 +153,13 @@ body, html {
   flex-shrink: 0;
 }
 
-.app-brand-icon {
-  width: 20px;
-  height: 20px;
-  background: linear-gradient(135deg, var(--accent) 0%, #a855f7 100%);
+.app-brand-logo {
+  width: 22px;
+  height: 22px;
   border-radius: 5px;
-  box-shadow: 0 0 10px var(--accent-glow);
+  object-fit: contain;
+  box-shadow: 0 0 10px rgba(99, 102, 241, 0.35);
+  display: block;
 }
 
 .title-container {

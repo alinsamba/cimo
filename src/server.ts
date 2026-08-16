@@ -54,6 +54,21 @@ export function startCimoServer(options?: ServerOptions): ServerInstance {
         return new Response(file, { headers: { 'Content-Type': 'text/css; charset=utf-8' } });
       }
 
+      // Static Logo and Asset routes
+      if (pathname === '/logo.svg' || pathname === '/assets/logo.svg' || pathname === '/favicon.ico') {
+        const file = Bun.file(join(import.meta.dir, 'ui/assets/logo.svg'));
+        return new Response(file, { headers: { 'Content-Type': 'image/svg+xml' } });
+      }
+
+      if (pathname === '/logo.png' || pathname === '/assets/logo.png') {
+        const file = Bun.file(join(import.meta.dir, 'ui/assets/logo.png'));
+        return new Response(file, { headers: { 'Content-Type': 'image/png' } });
+      }
+
+      if (pathname === '/logo-nobg.png' || pathname === '/assets/logo-nobg.png') {
+        const file = Bun.file(join(import.meta.dir, 'ui/assets/logo-nobg.png'));
+        return new Response(file, { headers: { 'Content-Type': 'image/png' } });
+      }
       // JS / TS Bundling on-the-fly for browser
       if (pathname === '/app.ts' || pathname.endsWith('.ts') || pathname.endsWith('.js')) {
         const relPath = pathname.startsWith('/') ? pathname.slice(1) : pathname;

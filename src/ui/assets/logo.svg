@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="512"
+   height="512"
+   viewBox="0 0 512 512"
+   version="1.1"
+   id="svg1"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <rect
+     style="fill:#000000"
+     id="rect3"
+     width="508.3602"
+     height="508.3602"
+     x="1.8199005"
+     y="1.8199005"
+     ry="131.03317"
+     rx="124.96681" />
+  <g
+     id="layer1">
+    <g
+       id="g3"
+       transform="translate(26.691298,27.923323)">
+      <text
+         xml:space="preserve"
+         style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:433.386px;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold Italic';writing-mode:lr-tb;direction:ltr;fill:#ffffff;stroke-width:36.1155"
+         x="48.560371"
+         y="351.91159"
+         id="text1"
+         transform="scale(1.0750396,0.93019829)"><tspan
+           id="tspan1"
+           x="48.560371"
+           y="351.91159"
+           style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold Italic';fill:#ffffff;stroke-width:36.1155">C</tspan></text>
+      <text
+         xml:space="preserve"
+         style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:115.449px;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold Italic';writing-mode:lr-tb;direction:ltr;fill:#ffffff;stroke-width:9.6207"
+         x="24.442915"
+         y="502.19958"
+         id="text3"
+         transform="scale(1.1771625,0.84950038)"><tspan
+           id="tspan3"
+           x="24.442915"
+           y="502.19958"
+           style="fill:#ffffff;stroke-width:9.6207">CIMO</tspan></text>
+    </g>
+  </g>
+</svg>
