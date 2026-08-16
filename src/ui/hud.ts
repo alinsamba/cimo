@@ -619,11 +619,18 @@ export class FloatingHUD {
 
     // Rate change
     const onRateChange = (rate: number) => {
-      if (this.elements.speedBtn) {
-        this.elements.speedBtn.textContent = `${rate}x`;
+      const label = document.getElementById('speed-display-label');
+      if (label) {
+        label.textContent = `${rate}x`;
+      } else if (this.elements.speedBtn) {
+        this.elements.speedBtn.innerHTML = `
+          <span id="speed-display-label">${rate}x</span>
+          <svg class="chevron-icon" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        `;
       }
     };
-
     // Register with controller event emitter
     const emitter = this.controller as unknown as {
       on: (event: string, fn: (...args: unknown[]) => void) => void;

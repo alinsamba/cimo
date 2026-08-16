@@ -70,16 +70,23 @@ export class ToastManager {
       this.resumeToastElement.className = 'hud-toast hud-toast-resume';
       this.container.appendChild(this.resumeToastElement);
     }
-
     this.resumeToastElement.innerHTML = `
-      <span class="toast-icon">⏱️</span>
+      <span class="toast-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+      </span>
       <span class="toast-text">Resumed at ${this.escapeHtml(timeFormatted)}</span>
       <span class="toast-divider">|</span>
       <button class="toast-action-btn" id="btn-resume-restart">Start from Beginning</button>
-      <button class="toast-close-btn" id="btn-resume-dismiss">✕</button>
+      <button class="toast-close-btn" id="btn-resume-dismiss" title="Dismiss">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
     `;
-
-    const restartBtn = this.resumeToastElement.querySelector('#btn-resume-restart');
     restartBtn?.addEventListener('click', () => {
       onRestartFromBeginning();
       this.hideResumeToast();

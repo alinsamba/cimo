@@ -149,15 +149,16 @@ export class GestureEngine {
         const normalizedDelta = -deltaY / stageHeight;
         const targetBrightness = Math.max(0.1, Math.min(1.0, this.touchState.initialBrightness + normalizedDelta));
         this.setBrightness(targetBrightness);
-        this.showFeedback('☀️', `Brightness ${Math.round(targetBrightness * 100)}%`, targetBrightness);
+        const sunSvg = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
+        this.showFeedback(sunSvg, `Brightness ${Math.round(targetBrightness * 100)}%`, targetBrightness);
       } else if (this.touchState.gestureType === 'vertical-volume') {
         e.preventDefault();
         const stageHeight = this.stage.clientHeight || 400;
         const normalizedDelta = (-deltaY / stageHeight) * 2.0; // scale to 200% volume
         const targetVolume = Math.max(0.0, Math.min(2.0, this.touchState.initialVolume + normalizedDelta));
         this.controller.setVolume(targetVolume);
-        const icon = targetVolume === 0 ? '🔇' : targetVolume > 1.0 ? '🔊⚡' : '🔊';
-        this.showFeedback(icon, `Volume ${Math.round(targetVolume * 100)}%`, targetVolume / 2.0);
+        const volSvg = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>`;
+        this.showFeedback(volSvg, `Volume ${Math.round(targetVolume * 100)}%`, targetVolume / 2.0);
       } else if (this.touchState.gestureType === 'horizontal-seek') {
         e.preventDefault();
         const stageWidth = this.stage.clientWidth || 600;
@@ -172,7 +173,8 @@ export class GestureEngine {
           )
         );
         const sign = deltaSeconds >= 0 ? '+' : '';
-        this.showFeedback('⏩', `${sign}${deltaSeconds}s (${this.formatTime(targetTime)})`, targetTime / (this.controller.getState().duration || 1));
+        const seekSvg = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 19 22 12 13 5 13 19"></polygon><polygon points="2 19 11 12 2 5 2 19"></polygon></svg>`;
+        this.showFeedback(seekSvg, `${sign}${deltaSeconds}s (${this.formatTime(targetTime)})`, targetTime / (this.controller.getState().duration || 1));
       }
     }
   }
@@ -229,16 +231,21 @@ export class GestureEngine {
     if (relativeX < width * 0.35) {
       // Double tap left: seek -10s
       this.controller.seekRelative(-10);
-      this.showFeedback('⏪', '-10s');
+      const backSvg = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><text x="12" y="15.2" text-anchor="middle" font-size="8" font-family="var(--font-mono)" font-weight="700" fill="currentColor" stroke="none">10</text></svg>`;
+      this.showFeedback(backSvg, '-10s');
     } else if (relativeX > width * 0.65) {
       // Double tap right: seek +10s
       this.controller.seekRelative(10);
-      this.showFeedback('⏩', '+10s');
+      const fwdSvg = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><text x="12" y="15.2" text-anchor="middle" font-size="8" font-family="var(--font-mono)" font-weight="700" fill="currentColor" stroke="none">10</text></svg>`;
+      this.showFeedback(fwdSvg, '+10s');
     } else {
       // Double tap center: toggle play/pause
       this.controller.togglePlay();
       const isPlaying = this.controller.getState().status === 'playing';
-      this.showFeedback(isPlaying ? '⏸️' : '▶️', isPlaying ? 'Pause' : 'Play');
+      const playSvg = isPlaying
+        ? `<svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"></rect><rect x="14" y="4" width="4" height="16" rx="1"></rect></svg>`
+        : `<svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>`;
+      this.showFeedback(playSvg, isPlaying ? 'Pause' : 'Play');
     }
   }
 
@@ -250,16 +257,15 @@ export class GestureEngine {
       this.feedbackTimeout = null;
     }
 
-    const iconEl = this.feedbackHud.querySelector('.gesture-icon');
-    const labelEl = this.feedbackHud.querySelector('.gesture-label');
+    const iconEl = this.feedbackHud.querySelector('.gesture-icon') as HTMLElement | null;
+    const labelEl = this.feedbackHud.querySelector('.gesture-label') as HTMLElement | null;
     const fillEl = this.feedbackHud.querySelector('.gesture-bar-fill') as HTMLElement | null;
 
-    if (iconEl) iconEl.textContent = icon;
+    if (iconEl) iconEl.innerHTML = icon;
     if (labelEl) labelEl.textContent = label;
     if (fillEl && typeof progressFraction === 'number') {
       fillEl.style.width = `${Math.round(progressFraction * 100)}%`;
     }
-
     this.feedbackHud.classList.add('visible');
   }
 

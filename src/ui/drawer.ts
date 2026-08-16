@@ -263,9 +263,15 @@ export class LibraryDrawer {
 
     if (queue.length === 0) {
       content.innerHTML = `
-        <div style="padding: 3rem 1.5rem; text-align: center; color: var(--text-muted);">
-          <div style="font-size: 2.5rem; margin-bottom: 0.75rem; opacity: 0.8;">🎵</div>
-          <div style="font-size: 0.95rem; font-weight: 500; color: var(--text-primary);">Queue is empty</div>
+        <div style="padding: 3.5rem 1.5rem; text-align: center; color: var(--text-muted);">
+          <div style="display: flex; justify-content: center; margin-bottom: 0.85rem; opacity: 0.7; color: var(--accent-neon);">
+            <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 18V5l12-2v13"></path>
+              <circle cx="6" cy="18" r="3"></circle>
+              <circle cx="18" cy="16" r="3"></circle>
+            </svg>
+          </div>
+          <div style="font-size: 0.95rem; font-weight: 600; color: var(--text-primary);">Queue is empty</div>
           <div style="font-size: 0.8rem; margin-top: 0.35rem; color: var(--text-muted);">Drop media files anywhere or open files to play</div>
         </div>
       `;
@@ -305,14 +311,14 @@ export class LibraryDrawer {
               </svg>
             </button>
             <button class="btn-item-action btn-item-info" data-info-title="${this.escapeHtml(item.title)}" data-info-uri="${this.escapeHtml(item.uri)}" data-info-dur="${durationStr}" data-info-res="${item.metadata?.resolution || 'Auto'}" title="File Info">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"></circle>
                 <line x1="12" y1="16" x2="12" y2="12"></line>
                 <line x1="12" y1="8" x2="12.01" y2="8"></line>
               </svg>
             </button>
             <button class="btn-item-action btn-danger btn-remove-queue-item" data-remove-index="${index}" title="Remove from Queue">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="18" y1="6" x2="6" y2="18"></line>
                 <line x1="6" y1="6" x2="18" y2="18"></line>
               </svg>
@@ -385,9 +391,13 @@ export class LibraryDrawer {
 
     if (filtered.length === 0) {
       content.innerHTML = `
-        <div style="padding: 3rem 1.5rem; text-align: center; color: var(--text-muted);">
-          <div style="font-size: 2.5rem; margin-bottom: 0.75rem; opacity: 0.8;">📁</div>
-          <div style="font-size: 0.95rem; font-weight: 500; color: var(--text-primary);">No playlists found</div>
+        <div style="padding: 3.5rem 1.5rem; text-align: center; color: var(--text-muted);">
+          <div style="display: flex; justify-content: center; margin-bottom: 0.85rem; opacity: 0.7; color: var(--accent-neon);">
+            <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+            </svg>
+          </div>
+          <div style="font-size: 0.95rem; font-weight: 600; color: var(--text-primary);">No playlists found</div>
           <div style="font-size: 0.8rem; margin-top: 0.35rem; color: var(--text-muted);">Create custom playlists to organize your collection</div>
         </div>
       `;
@@ -400,7 +410,11 @@ export class LibraryDrawer {
       html += `
         <div class="media-list-item" data-playlist-id="${p.id}" tabindex="0" role="button">
           <div class="media-item-left">
-            <span style="font-size: 1.1rem; opacity: 0.85;">📁</span>
+            <span style="display: flex; align-items: center; opacity: 0.85; color: var(--accent-neon);">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+              </svg>
+            </span>
             <div class="media-item-info">
               <span class="media-item-title">${this.escapeHtml(p.name)}</span>
               <div class="media-item-subrow">
@@ -416,7 +430,7 @@ export class LibraryDrawer {
               </svg>
             </button>
             <button class="btn-item-action btn-danger btn-delete-playlist" data-playlist-id="${p.id}" title="Delete Playlist">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="3 6 5 6 21 6"></polyline>
                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
               </svg>
@@ -475,9 +489,14 @@ export class LibraryDrawer {
 
     if (filtered.length === 0) {
       content.innerHTML = `
-        <div style="padding: 3rem 1.5rem; text-align: center; color: var(--text-muted);">
-          <div style="font-size: 2.5rem; margin-bottom: 0.75rem; opacity: 0.8;">🕒</div>
-          <div style="font-size: 0.95rem; font-weight: 500; color: var(--text-primary);">No playback history</div>
+        <div style="padding: 3.5rem 1.5rem; text-align: center; color: var(--text-muted);">
+          <div style="display: flex; justify-content: center; margin-bottom: 0.85rem; opacity: 0.7; color: var(--accent-neon);">
+            <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+          </div>
+          <div style="font-size: 0.95rem; font-weight: 600; color: var(--text-primary);">No playback history</div>
           <div style="font-size: 0.8rem; margin-top: 0.35rem; color: var(--text-muted);">Media you play will automatically appear here</div>
         </div>
       `;
@@ -494,11 +513,16 @@ export class LibraryDrawer {
       html += `
         <div class="media-list-item" data-history-uri="${this.escapeHtml(h.uri)}" data-history-pos="${h.position}" tabindex="0" role="button">
           <div class="media-item-left">
-            <span style="font-size: 1.1rem; opacity: 0.8;">🎬</span>
+            <span style="display: flex; align-items: center; opacity: 0.85; color: var(--accent-neon);">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+            </span>
             <div class="media-item-info">
               <span class="media-item-title" title="${this.escapeHtml(h.title)}">${this.escapeHtml(parsed.cleanTitle)}</span>
               <div class="media-item-subrow">
-                <span class="item-badge" style="color: ${h.completed ? 'var(--text-muted)' : 'var(--accent)'};">${resumeText}</span>
+                <span class="item-badge" style="color: ${h.completed ? 'var(--text-muted)' : 'var(--accent-neon)'};">${resumeText}</span>
                 <span class="item-meta-dot">•</span>
                 <span>${new Date(h.lastPlayedAt).toLocaleDateString()}</span>
               </div>
@@ -516,7 +540,7 @@ export class LibraryDrawer {
               </svg>
             </button>
             <button class="btn-item-action btn-add-history-queue" data-history-uri="${this.escapeHtml(h.uri)}" data-history-title="${this.escapeHtml(h.title)}" title="Add to Queue">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="12" y1="5" x2="12" y2="19"></line>
                 <line x1="5" y1="12" x2="19" y2="12"></line>
               </svg>
@@ -586,9 +610,16 @@ export class LibraryDrawer {
 
     if (items.length === 0) {
       content.innerHTML = `
-        <div style="padding: 3rem 1.5rem; text-align: center; color: var(--text-muted);">
-          <div style="font-size: 2.5rem; margin-bottom: 0.75rem; opacity: 0.8;">🎞️</div>
-          <div style="font-size: 0.95rem; font-weight: 500; color: var(--text-primary);">No media items indexed</div>
+        <div style="padding: 3.5rem 1.5rem; text-align: center; color: var(--text-muted);">
+          <div style="display: flex; justify-content: center; margin-bottom: 0.85rem; opacity: 0.7; color: var(--accent-neon);">
+            <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="2" width="20" height="20" rx="2.18"></rect>
+              <line x1="7" y1="2" x2="7" y2="22"></line>
+              <line x1="17" y1="2" x2="17" y2="22"></line>
+              <line x1="2" y1="12" x2="22" y2="12"></line>
+            </svg>
+          </div>
+          <div style="font-size: 0.95rem; font-weight: 600; color: var(--text-primary);">No media items indexed</div>
           <div style="font-size: 0.8rem; margin-top: 0.35rem; color: var(--text-muted);">Scan a folder from the footer to populate your library</div>
         </div>
       `;
@@ -606,7 +637,11 @@ export class LibraryDrawer {
       html += `
         <div class="media-list-item" data-media-uri="${this.escapeHtml(item.uri)}" tabindex="0" role="button">
           <div class="media-item-left">
-            <span style="font-size: 1.1rem; opacity: 0.8;">▶</span>
+            <span style="display: flex; align-items: center; opacity: 0.85; color: var(--accent-neon);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+              </svg>
+            </span>
             <div class="media-item-info">
               <span class="media-item-title" title="${this.escapeHtml(item.title)}">${this.escapeHtml(parsed.cleanTitle)}</span>
               <div class="media-item-subrow">
@@ -623,13 +658,13 @@ export class LibraryDrawer {
               </svg>
             </button>
             <button class="btn-item-action btn-add-media-queue" title="Add to Queue">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="12" y1="5" x2="12" y2="19"></line>
                 <line x1="5" y1="12" x2="19" y2="12"></line>
               </svg>
             </button>
             <button class="btn-item-action btn-item-info" data-info-title="${this.escapeHtml(item.title)}" data-info-uri="${this.escapeHtml(item.uri)}" data-info-dur="${durationStr}" data-info-res="${item.metadata?.resolution || 'Auto'}" title="File Info">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"></circle>
                 <line x1="12" y1="16" x2="12" y2="12"></line>
                 <line x1="12" y1="8" x2="12.01" y2="8"></line>
@@ -702,7 +737,7 @@ export class LibraryDrawer {
       case 'queue':
         footer.innerHTML = `
           <button id="btn-shuffle-queue-footer" class="btn-footer-action" title="Shuffle Queue">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="16 3 21 3 21 8"></polyline>
               <line x1="4" y1="20" x2="21" y2="3"></line>
               <polyline points="21 16 21 21 16 21"></polyline>
@@ -722,7 +757,7 @@ export class LibraryDrawer {
 
       case 'playlists':
         footer.innerHTML = `
-          <button id="btn-new-playlist-footer" class="btn-footer-action" style="background: var(--accent); color: #fff; border-color: transparent;" title="Create Playlist">+ New</button>
+          <button id="btn-new-playlist-footer" class="btn-footer-action" style="background: var(--accent-neon); color: #fff; border-color: transparent;" title="Create Playlist">+ New</button>
         `;
         footer.querySelector('#btn-new-playlist-footer')?.addEventListener('click', async () => {
           const name = prompt('Enter playlist name:');
@@ -760,7 +795,12 @@ export class LibraryDrawer {
     modal.innerHTML = `
       <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.5rem;">
         <span style="font-weight: 600; font-size: 0.9rem;">Media Information</span>
-        <button id="btn-close-info-modal" class="btn-icon" style="min-width: 24px; height: 24px; padding: 0;">✕</button>
+        <button id="btn-close-info-modal" class="btn-icon" style="min-width: 24px; height: 24px; padding: 0;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
       </div>
       <div class="info-row">
         <span class="info-label">Title:</span>

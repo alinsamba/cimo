@@ -150,7 +150,12 @@ export class ContextMenuManager {
     return `
       <!-- Playback Submenu -->
       <div class="cmenu-item cmenu-has-submenu">
-        <span class="cmenu-label">▶ Playback</span>
+        <span class="cmenu-label">
+          <svg class="cmenu-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+          Playback
+        </span>
         <span class="cmenu-arrow">›</span>
         <div class="cmenu-submenu">
           <div class="cmenu-item" data-action="toggle-play">
@@ -202,7 +207,16 @@ export class ContextMenuManager {
 
       <!-- Audio Submenu -->
       <div class="cmenu-item cmenu-has-submenu">
-        <span class="cmenu-label">🔊 Audio</span>
+        <span class="cmenu-label">
+          <svg class="cmenu-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 10v4"></path>
+            <path d="M8 7v10"></path>
+            <path d="M12 3v18"></path>
+            <path d="M16 7v10"></path>
+            <path d="M20 10v4"></path>
+          </svg>
+          Audio
+        </span>
         <span class="cmenu-arrow">›</span>
         <div class="cmenu-submenu">
           <div class="cmenu-header">Audio Tracks</div>
@@ -235,7 +249,14 @@ export class ContextMenuManager {
 
       <!-- Subtitles Submenu -->
       <div class="cmenu-item cmenu-has-submenu">
-        <span class="cmenu-label">💬 Subtitles</span>
+        <span class="cmenu-label">
+          <svg class="cmenu-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="4" width="20" height="16" rx="3"></rect>
+            <path d="M7 15h2a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2H7"></path>
+            <path d="M13 15h2a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2h-2"></path>
+          </svg>
+          Subtitles
+        </span>
         <span class="cmenu-arrow">›</span>
         <div class="cmenu-submenu">
           <div class="cmenu-item ${!currentSubId ? 'cmenu-checked' : ''}" data-action="sub-track" data-value="none">
@@ -269,7 +290,13 @@ export class ContextMenuManager {
 
       <!-- Video Processing Submenu -->
       <div class="cmenu-item cmenu-has-submenu">
-        <span class="cmenu-label">⚙️ Video Processing</span>
+        <span class="cmenu-label">
+          <svg class="cmenu-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+          Video Processing
+        </span>
         <span class="cmenu-arrow">›</span>
         <div class="cmenu-submenu">
           <div class="cmenu-item ${this.hwAccelEnabled ? 'cmenu-checked' : ''}" data-action="toggle-hw-accel">
@@ -292,7 +319,13 @@ export class ContextMenuManager {
           </div>
           <div class="cmenu-divider"></div>
           <div class="cmenu-item" data-action="capture-snapshot">
-            <span>📸 Capture Frame / Snapshot</span>
+            <span class="cmenu-label">
+              <svg class="cmenu-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                <circle cx="12" cy="13" r="4"></circle>
+              </svg>
+              Capture Frame / Snapshot
+            </span>
           </div>
         </div>
       </div>
@@ -301,10 +334,23 @@ export class ContextMenuManager {
 
       <!-- File Info & Actions -->
       <div class="cmenu-item" data-action="media-info">
-        <span>ℹ️ File & Media Properties</span>
+        <span class="cmenu-label">
+          <svg class="cmenu-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+          </svg>
+          File & Media Properties
+        </span>
       </div>
       <div class="cmenu-item" data-action="copy-path">
-        <span>📋 Copy Media Path</span>
+        <span class="cmenu-label">
+          <svg class="cmenu-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+          Copy Media Path
+        </span>
       </div>
     `;
   }
