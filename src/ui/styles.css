@@ -843,16 +843,17 @@ body, html {
   backdrop-filter: blur(36px) saturate(220%);
   -webkit-backdrop-filter: blur(36px) saturate(220%);
   border: 1px solid var(--border-glass);
-  border-radius: 14px;
-  padding: 0.5rem;
-  min-width: 190px;
+  border-radius: 12px;
+  padding: 0.4rem;
+  min-width: 180px;
+  width: max-content;
   box-shadow:
     0 20px 50px rgba(0, 0, 0, 0.85),
     inset 0 1px 1px rgba(255, 255, 255, 0.6),
     0 0 30px rgba(168, 85, 247, 0.25);
   display: none;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.15rem;
   z-index: 50;
 }
 
@@ -864,7 +865,7 @@ body, html {
 @keyframes popoverFadeIn {
   from {
     opacity: 0;
-    transform: translateY(8px) scale(0.97);
+    transform: translateY(6px) scale(0.97);
   }
   to {
     opacity: 1;
@@ -876,13 +877,15 @@ body, html {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.5rem 0.8rem;
-  border-radius: 8px;
+  padding: 0.45rem 0.75rem;
+  min-height: 34px;
+  border-radius: 6px;
   color: var(--text-secondary);
-  font-size: 0.82rem;
+  font-size: 0.85rem;
+  font-weight: 500;
   cursor: pointer;
   border: 1px solid transparent;
-  transition: all var(--transition-fast);
+  transition: all 0.12s;
 }
 
 .popover-item:hover {
@@ -890,14 +893,58 @@ body, html {
   color: var(--text-primary);
 }
 
+/* Standardized 2-Column Speed & Option Layout */
+.popover-label {
+  display: flex;
+  align-items: center;
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+.speed-val {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.speed-mult {
+  font-family: var(--font-mono);
+  opacity: 0.7;
+  margin-left: 2px;
+  font-weight: 400;
+}
+
+.speed-tag {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-left: 0.35rem;
+  font-weight: 400;
+}
+
+.popover-check {
+  color: var(--accent-neon);
+  font-weight: 700;
+  font-size: 0.88rem;
+  margin-left: auto;
+  text-shadow: 0 0 8px var(--accent-glow);
+}
+
 /* Neon purple border and soft glow for active option */
 .popover-item.selected {
   border: 1px solid var(--accent-neon);
-  background: rgba(217, 70, 239, 0.2);
-  box-shadow: 0 0 16px rgba(217, 70, 239, 0.6), inset 0 0 10px rgba(217, 70, 239, 0.3);
+  background: rgba(217, 70, 239, 0.18);
+  box-shadow: 0 0 14px rgba(217, 70, 239, 0.45), inset 0 0 8px rgba(217, 70, 239, 0.2);
   color: #ffffff;
-  font-weight: 700;
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+  font-weight: 600;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+}
+
+.popover-item.selected .speed-val {
+  color: #ffffff;
+}
+
+.popover-item.selected .speed-tag {
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .popover-glyph {

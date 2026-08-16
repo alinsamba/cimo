@@ -328,13 +328,11 @@ export class FloatingHUD {
       e.stopPropagation();
       const isOpen = menu.classList.contains('open');
       this.closeAllPopovers();
-      if (!isOpen) menu.classList.add('open');
+      if (!isOpen) {
+        this.renderSpeedMenu();
+        menu.classList.add('open');
+      }
     });
-
-    const speeds = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 3.0, 4.0];
-    menu.innerHTML = speeds
-      .map((s) => `<div class="popover-item" data-speed="${s}">${s}x</div>`)
-      .join('');
 
     menu.addEventListener('click', (e) => {
       const item = (e.target as HTMLElement).closest('.popover-item') as HTMLElement | null;
@@ -344,6 +342,28 @@ export class FloatingHUD {
         menu.classList.remove('open');
       }
     });
+  }
+
+  public renderSpeedMenu(): void {
+    const menu = this.elements.speedMenu;
+    if (!menu) return;
+
+    const speeds = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 3.0, 4.0];
+    const current = this.controller.getState().playbackRate;
+
+    menu.innerHTML = speeds
+      .map((s) => {
+        const isSel = Math.abs(current - s) < 0.01;
+        const formattedNum = s.toFixed(2);
+        const normalLabel = s === 1.0 ? '<span class="speed-tag">(Normal)</span>' : '';
+        return `
+          <div class="popover-item ${isSel ? 'selected' : ''}" data-speed="${s}">
+            <span class="popover-label"><span class="speed-val">${formattedNum}</span><span class="speed-mult">×</span>${normalLabel}</span>
+            ${isSel ? '<span class="popover-check">✓</span>' : ''}
+          </div>
+        `;
+      })
+      .join('');
   }
 
   private setupSubtitlesMenu(): void {
@@ -387,17 +407,33 @@ export class FloatingHUD {
     const selectedId = state.selectedSubtitleTrackId;
 
     let html = `
-      <div class="popover-item ${!selectedId ? 'selected' : ''}" data-track-id="none">Off</div>
+      <div class="popover-item ${!selectedId ? 'selected' : ''}" data-track-id="none">
+        <span>Off</span>
+        ${!selectedId ? '<span class="popover-check">✓</span>' : ''}
+      </div>
     `;
 
     tracks.forEach((track) => {
       const isSel = track.id === selectedId;
-      html += `<div class="popover-item ${isSel ? 'selected' : ''}" data-track-id="${track.id}">${track.label} (${track.format.toUpperCase()})</div>`;
+      html += `
+        <div class="popover-item ${isSel ? 'selected' : ''}" data-track-id="${track.id}">
+          <span>${this.escapeHtml(track.label)} <span class="item-badge">${track.format.toUpperCase()}</span></span>
+          ${isSel ? '<span class="popover-check">✓</span>' : ''}
+        </div>
+      `;
     });
 
     html += `
-      <div style="height: 1px; background: var(--border-subtle); margin: 0.25rem 0;"></div>
-      <div class="popover-item" data-track-id="load-file">Load Subtitle File...</div>
+      <div class="cmenu-divider"></div>
+      <div class="popover-item popover-action-row" data-track-id="load-file">
+        <span>Load Subtitle File...</span>
+        <span class="popover-glyph">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+        </span>
+      </div>
     `;
 
     menu.innerHTML = html;
@@ -440,14 +476,24 @@ export class FloatingHUD {
     const selectedId = state.selectedAudioTrackId;
 
     if (tracks.length === 0) {
-      menu.innerHTML = `<div class="popover-item selected" data-track-id="default">Default Track</div>`;
+      menu.innerHTML = `
+        <div class="popover-item selected" data-track-id="default">
+          <span>Default Track</span>
+          <span class="popover-check">✓</span>
+        </div>
+      `;
       return;
     }
 
     menu.innerHTML = tracks
       .map((t) => {
         const isSel = t.id === selectedId;
-        return `<div class="popover-item ${isSel ? 'selected' : ''}" data-track-id="${t.id}">${t.label}${t.channels ? ` (${t.channels}ch)` : ''}</div>`;
+        return `
+          <div class="popover-item ${isSel ? 'selected' : ''}" data-track-id="${t.id}">
+            <span>${this.escapeHtml(t.label)}${t.channels ? ` <span class="item-badge">${t.channels}ch</span>` : ''}</span>
+            ${isSel ? '<span class="popover-check">✓</span>' : ''}
+          </div>
+        `;
       })
       .join('');
   }
