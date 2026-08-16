@@ -13,8 +13,8 @@
   --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
   --text-muted: #64748b;
-  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-family: "Inter", "Geist Sans", "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 20px;
@@ -46,7 +46,9 @@ body, html {
   color: var(--text-primary);
   font-family: var(--font-family);
   font-size: 14px;
-}
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 
 /* App Container */
 #cimo-app {
@@ -334,20 +336,17 @@ body, html {
   border-style: solid;
   border-color: rgba(15, 15, 22, 0.95) transparent transparent transparent;
 }
-
-.scrubber-container:hover .scrubber-tooltip {
-  opacity: 1;
-}
-
-/* Time Display */
+/* Time Display with Tabular Figures */
 .time-display {
   font-family: var(--font-mono);
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   color: var(--text-secondary);
   display: flex;
   align-items: center;
   gap: 0.3rem;
   flex-shrink: 0;
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1;
 }
 
 .time-current {
