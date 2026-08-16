@@ -1,0 +1,40 @@
+# dependencies
+node_modules
+
+# build output
+dist
+out
+*.tgz
+src/ui/app.js
+
+# SQLite databases
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# code coverage
+coverage
+*.lcov
+
+# logs
+logs
+*.log
+
+# dotenv environment variable files
+.env
+.env.*
+!.env.example
+
+# caches
+.eslintcache
+.cache
+*.tsbuildinfo
+
+# IDEs
+.idea
+.vscode
+
+# OS files
+.DS_Store
+Thumbs.db

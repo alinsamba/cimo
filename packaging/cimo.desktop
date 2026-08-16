@@ -1,0 +1,35 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Cimo
+GenericName=Media Player
+Comment=Minimalist, high-performance cross-platform media player
+Exec=cimo %U
+Icon=cimo
+Terminal=false
+StartupNotify=true
+StartupWMClass=cimo
+Categories=AudioVideo;Player;Video;Audio;
+MimeType=video/mp4;video/x-matroska;video/webm;video/x-msvideo;video/quicktime;video/x-flv;video/x-m4v;video/mp2t;video/x-ms-wmv;video/ogg;audio/mpeg;audio/flac;audio/wav;audio/aac;audio/ogg;audio/mp4;audio/opus;audio/x-ms-wma;audio/x-aiff;application/x-subrip;text/vtt;text/x-ssa;
+Keywords=player;media;video;audio;subtitles;mpris;equalizer;
+Actions=PlayPause;Next;Previous;Stop;
+
+[Desktop Action PlayPause]
+Name=Play/Pause
+Exec=cimo --toggle-play
+Icon=media-playback-start
+
+[Desktop Action Next]
+Name=Next Track
+Exec=cimo --next
+Icon=media-skip-forward
+
+[Desktop Action Previous]
+Name=Previous Track
+Exec=cimo --previous
+Icon=media-skip-backward
+
+[Desktop Action Stop]
+Name=Stop
+Exec=cimo --stop
+Icon=media-playback-stop
