@@ -58,37 +58,22 @@ export const ALL_FILE_TYPES: readonly FileTypeDefinition[] = [
   ...SUBTITLE_FILE_TYPES,
 ] as const;
 
-/**
- * Get all supported video formats.
- */
 export function getSupportedVideoFormats(): readonly FileTypeDefinition[] {
   return VIDEO_FILE_TYPES;
 }
 
-/**
- * Get all supported audio formats.
- */
 export function getSupportedAudioFormats(): readonly FileTypeDefinition[] {
   return AUDIO_FILE_TYPES;
 }
 
-/**
- * Get all supported subtitle formats.
- */
 export function getSupportedSubtitleFormats(): readonly FileTypeDefinition[] {
   return SUBTITLE_FILE_TYPES;
 }
 
-/**
- * Get all supported formats.
- */
 export function getAllSupportedFormats(): readonly FileTypeDefinition[] {
   return ALL_FILE_TYPES;
 }
 
-/**
- * Static lookup tables by lowercase extension and lowercase MIME type.
- */
 export const EXTENSION_LOOKUP: Record<string, FileTypeDefinition> = Object.fromEntries(
   ALL_FILE_TYPES.map((item) => [item.extension.toLowerCase(), item])
 );
@@ -97,9 +82,6 @@ export const MIME_TYPE_LOOKUP: Record<string, FileTypeDefinition> = Object.fromE
   ALL_FILE_TYPES.map((item) => [item.mimeType.toLowerCase(), item])
 );
 
-/**
- * Extract extension from a filename or path.
- */
 export function extractExtension(filePathOrName: string): string {
   const noQuery = filePathOrName.includes('?') ? (filePathOrName.split('?')[0] ?? '') : filePathOrName;
   const clean = noQuery.includes('#') ? (noQuery.split('#')[0] ?? '') : noQuery;
@@ -112,9 +94,6 @@ export function extractExtension(filePathOrName: string): string {
   return fileName.slice(lastDot).toLowerCase();
 }
 
-/**
- * Get unique list of all supported MIME types.
- */
 export function getAllMimeTypes(): string[] {
   const uniqueMimes: Record<string, true> = {};
   for (const item of ALL_FILE_TYPES) {
@@ -123,16 +102,10 @@ export function getAllMimeTypes(): string[] {
   return Object.keys(uniqueMimes);
 }
 
-/**
- * Get unique list of all supported extensions (with leading dot).
- */
 export function getAllExtensions(): string[] {
   return ALL_FILE_TYPES.map((item) => item.extension);
 }
 
-/**
- * Look up MIME type by file path or extension.
- */
 export function getMimeType(filePathOrExtension: string): string | undefined {
   const ext = filePathOrExtension.startsWith('.')
     ? filePathOrExtension.toLowerCase()
@@ -140,16 +113,10 @@ export function getMimeType(filePathOrExtension: string): string | undefined {
   return EXTENSION_LOOKUP[ext]?.mimeType;
 }
 
-/**
- * Look up default extension by MIME type.
- */
 export function getExtension(mimeType: string): string | undefined {
   return MIME_TYPE_LOOKUP[mimeType.toLowerCase()]?.extension;
 }
 
-/**
- * Determine category of a file by its path or extension.
- */
 export function getFileCategory(filePathOrExtension: string): MediaCategory | 'unknown' {
   const ext = filePathOrExtension.startsWith('.')
     ? filePathOrExtension.toLowerCase()
@@ -157,23 +124,17 @@ export function getFileCategory(filePathOrExtension: string): MediaCategory | 'u
   return EXTENSION_LOOKUP[ext]?.category ?? 'unknown';
 }
 
-/**
- * Check if the given file or extension is a supported playable media (video or audio).
- */
 export function isSupportedMedia(filePathOrExtension: string): boolean {
   const category = getFileCategory(filePathOrExtension);
   return category === 'video' || category === 'audio';
 }
 
-/**
- * Check if the given file or extension is a supported subtitle format.
- */
 export function isSupportedSubtitle(filePathOrExtension: string): boolean {
   return getFileCategory(filePathOrExtension) === 'subtitle';
 }
 
 /**
- * Generate compliant Linux XDG .desktop file contents.
+ * Linux: Generate compliant XDG .desktop file contents.
  */
 export function generateDesktopEntry(execPath = 'cimo', iconPath = 'cimo'): string {
   const mimeTypes = getAllMimeTypes().join(';');
@@ -217,7 +178,52 @@ Icon=media-playback-stop
 }
 
 /**
- * Generate Windows file associations AppX / Package.appxmanifest XML fragment.
+ * Linux: Generate mimeapps.list file entries.
+ */
+export function generateLinuxMimeAppsList(desktopFileName = 'cimo.desktop'): string {
+  const mimeLines = getAllMimeTypes()
+    .map((m) => `${m}=${desktopFileName};`)
+    .join('\n');
+
+  return `[Default Applications]\n${mimeLines}\n\n[Added Associations]\n${mimeLines}\n`;
+}
+
+/**
+ * Windows: Generate Windows Registry .reg file for ProgIDs & File Associations.
+ */
+export function generateWindowsRegistry(
+  appName = 'Cimo',
+  exePath = 'C:\\Program Files\\Cimo\\cimo.exe'
+): string {
+  const sanitizedExe = exePath.replace(/\\/g, '\\\\');
+  let reg = `Windows Registry Editor Version 5.00\n\n`;
+
+  reg += `[HKEY_LOCAL_MACHINE\\Software\\Clients\\Media\\${appName}]\n`;
+  reg += `@="${appName} Media Player"\n\n`;
+
+  reg += `[HKEY_LOCAL_MACHINE\\Software\\Clients\\Media\\${appName}\\Capabilities]\n`;
+  reg += `"ApplicationDescription"="Minimalist, high-performance cross-platform media player"\n`;
+  reg += `"ApplicationName"="${appName}"\n\n`;
+
+  reg += `[HKEY_LOCAL_MACHINE\\Software\\Clients\\Media\\${appName}\\Capabilities\\FileAssociations]\n`;
+  for (const item of ALL_FILE_TYPES) {
+    reg += `"${item.extension}"="${appName}.AssocFile${item.extension}"\n`;
+  }
+  reg += `\n`;
+
+  for (const item of ALL_FILE_TYPES) {
+    const progId = `${appName}.AssocFile${item.extension}`;
+    reg += `[HKEY_CLASSES_ROOT\\${progId}]\n`;
+    reg += `@="${item.description}"\n\n`;
+    reg += `[HKEY_CLASSES_ROOT\\${progId}\\shell\\open\\command]\n`;
+    reg += `@="\\"${sanitizedExe}\\" \\"%1\\""\n\n`;
+  }
+
+  return reg;
+}
+
+/**
+ * Windows: Generate Windows file associations AppX / Package.appxmanifest XML fragment.
  */
 export function generateWindowsManifest(appName = 'Cimo', executable = 'cimo.exe'): string {
   const extensions = getAllExtensions();
@@ -246,7 +252,7 @@ ${fileTypeTags}
 }
 
 /**
- * Generate macOS CFBundleDocumentTypes Info.plist array fragment.
+ * macOS: Generate macOS CFBundleDocumentTypes Info.plist array fragment.
  */
 export function generateMacOSInfoExtension(): string {
   const groups: Array<{ name: string; types: readonly FileTypeDefinition[] }> = [
@@ -285,4 +291,40 @@ ${mimeTags}
 <array>
 ${dicts.join('\n')}
 </array>`;
+}
+
+/**
+ * Android: Generate AndroidManifest.xml intent-filter declarations.
+ */
+export function generateAndroidManifest(): string {
+  return `<activity android:name=".MainActivity" android:exported="true">
+    <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
+    </intent-filter>
+    <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data android:scheme="file" />
+        <data android:scheme="content" />
+        <data android:scheme="http" />
+        <data android:scheme="https" />
+        <data android:mimeType="video/*" />
+        <data android:mimeType="audio/*" />
+    </intent-filter>
+</activity>`;
+}
+
+/**
+ * iOS: Generate iOS Info.plist file sharing and document opening configuration.
+ */
+export function generateIOSInfoPlist(): string {
+  return `<key>UIFileSharingEnabled</key>
+<true/>
+<key>LSSupportsOpeningDocumentsInPlace</key>
+<true/>
+<key>UISupportsDocumentBrowser</key>
+<true/>
+${generateMacOSInfoExtension()}`;
 }

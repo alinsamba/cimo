@@ -52,11 +52,55 @@ export const EQUALIZER_PRESETS: readonly EqualizerPreset[] = [
   },
 ];
 
+export interface DownmixCoefficients {
+  leftGains: number[];
+  rightGains: number[];
+  dialogueBoostDb: number;
+}
+
+export function calculateDownmixGains(
+  channelCount: number,
+  dialogueBoostDb: number = 3
+): DownmixCoefficients {
+  // Convert dB boost to linear multiplier: 10^(dB / 20)
+  const dialogueMultiplier = Math.pow(10, Math.max(0, Math.min(12, dialogueBoostDb)) / 20);
+  const centerCoeff = 0.7071 * dialogueMultiplier;
+  const surroundCoeff = 0.7071;
+  const lfeCoeff = 0.5;
+
+  if (channelCount === 6) {
+    // 5.1 Surround: [FL, FR, FC, LFE, SL, SR]
+    return {
+      leftGains: [1.0, 0.0, centerCoeff, lfeCoeff, surroundCoeff, 0.0],
+      rightGains: [0.0, 1.0, centerCoeff, lfeCoeff, 0.0, surroundCoeff],
+      dialogueBoostDb,
+    };
+  }
+
+  if (channelCount === 8) {
+    // 7.1 Surround: [FL, FR, FC, LFE, BL, BR, SL, SR]
+    return {
+      leftGains: [1.0, 0.0, centerCoeff, lfeCoeff, surroundCoeff * 0.7, 0.0, surroundCoeff, 0.0],
+      rightGains: [0.0, 1.0, centerCoeff, lfeCoeff, 0.0, surroundCoeff * 0.7, 0.0, surroundCoeff],
+      dialogueBoostDb,
+    };
+  }
+
+  // Stereo / Mono fallback
+  return {
+    leftGains: [1.0, 0.0],
+    rightGains: [0.0, 1.0],
+    dialogueBoostDb: 0,
+  };
+}
+
 export interface AudioDSPConfig {
   audioContext?: AudioContext;
   mediaElement?: HTMLMediaElement;
   initialVolume?: number;
   initialPreset?: string;
+  enableBitstreaming?: boolean;
+  dialogueBoostDb?: number;
 }
 
 export class AudioDSPManager {
@@ -71,6 +115,8 @@ export class AudioDSPManager {
 
   private currentPreset: string | null = 'Flat';
   private bands: EqualizerBand[];
+  private isBitstreaming: boolean = false;
+  private dialogueBoostDb: number = 3.0;
 
   constructor(config?: AudioDSPConfig) {
     this.bands = EQUALIZER_FREQUENCIES.map((freq) => ({
@@ -82,25 +128,18 @@ export class AudioDSPManager {
     if (config?.initialVolume !== undefined) {
       this.volume = Math.max(MIN_VOLUME, Math.min(MAX_VOLUME, config.initialVolume));
     }
+    if (config?.enableBitstreaming !== undefined) {
+      this.isBitstreaming = config.enableBitstreaming;
+    }
+    if (config?.dialogueBoostDb !== undefined) {
+      this.dialogueBoostDb = config.dialogueBoostDb;
+    }
 
     if (config?.audioContext) {
       this.audioContext = config.audioContext;
-      this.initAudioGraph();
-    } else if (typeof window !== 'undefined') {
-      const AudioContextClass =
-        window.AudioContext ||
-        (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-      if (AudioContextClass) {
-        try {
-          this.audioContext = new AudioContextClass();
-          this.initAudioGraph();
-        } catch {
-          // AudioContext initialization in restricted environments (e.g. autoplay policy)
-        }
-      }
     }
 
-    if (config?.mediaElement && this.audioContext) {
+    if (config?.mediaElement) {
       this.attachMediaElement(config.mediaElement);
     }
 
@@ -109,302 +148,207 @@ export class AudioDSPManager {
     }
   }
 
-  /**
-   * Initializes the Web Audio nodes graph:
-   * Source -> GainNode -> Filter 0 -> ... -> Filter 9 -> Destination
-   */
-  private initAudioGraph(): void {
-    if (!this.audioContext) return;
-
-    try {
-      this.gainNode = this.audioContext.createGain();
-      this.gainNode.gain.setValueAtTime(
-        this.muted ? 0 : this.volume,
-        this.audioContext.currentTime
-      );
-
-      this.filterNodes = this.bands.map((band, index) => {
-        const filter = this.audioContext!.createBiquadFilter();
-        
-        if (index === 0) {
-          filter.type = 'lowshelf';
-        } else if (index === this.bands.length - 1) {
-          filter.type = 'highshelf';
-        } else {
-          filter.type = 'peaking';
-        }
-
-        filter.frequency.setValueAtTime(band.frequency, this.audioContext!.currentTime);
-        filter.gain.setValueAtTime(band.gain, this.audioContext!.currentTime);
-        if (band.q !== undefined) {
-          filter.Q.setValueAtTime(band.q, this.audioContext!.currentTime);
-        }
-
-        return filter;
-      });
-
-      // Chain filters in series
-      for (let i = 0; i < this.filterNodes.length - 1; i++) {
-        const current = this.filterNodes[i];
-        const next = this.filterNodes[i + 1];
-        if (current && next) {
-          current.connect(next);
-        }
-      }
-
-      // Connect last filter to destination
-      const lastFilter = this.filterNodes[this.filterNodes.length - 1];
-      if (lastFilter) {
-        lastFilter.connect(this.audioContext.destination);
-      }
-
-      // Connect gainNode to first filter
-      const firstFilter = this.filterNodes[0];
-      if (this.gainNode && firstFilter) {
-        this.gainNode.connect(firstFilter);
-      }
-    } catch {
-      // Graceful fallback for mock/unsupported environments
-    }
-  }
-
-  /**
-   * Attaches an HTMLMediaElement to the DSP audio graph.
-   */
   public attachMediaElement(element: HTMLMediaElement): void {
-    if (!this.audioContext) {
-      if (typeof window !== 'undefined') {
-        const AudioContextClass =
-          window.AudioContext ||
-          (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-        if (AudioContextClass) {
-          try {
-            this.audioContext = new AudioContextClass();
-            this.initAudioGraph();
-          } catch {
-            return;
-          }
-        }
-      }
+    const hasAudioCtx = typeof AudioContext !== 'undefined';
+    const hasWebkitAudioCtx = typeof globalThis !== 'undefined' && 'webkitAudioContext' in globalThis;
+
+    if (!hasAudioCtx && !hasWebkitAudioCtx && !this.audioContext) {
+      return;
     }
 
-    if (!this.audioContext || !this.gainNode) return;
-
     try {
-      if (this.sourceNode) {
-        this.sourceNode.disconnect();
+      if (!this.audioContext) {
+        const AudioCtx = typeof AudioContext !== 'undefined'
+          ? AudioContext
+          : (globalThis as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+
+        if (AudioCtx) {
+          this.audioContext = new AudioCtx({
+            sampleRate: 48000,
+            latencyHint: 'playback',
+          });
+        }
+      }
+      if (!this.audioContext) return;
+
+      if (this.audioContext.state === 'suspended') {
+        const resumeOnGesture = () => {
+          this.audioContext?.resume();
+          document.removeEventListener('click', resumeOnGesture);
+          document.removeEventListener('keydown', resumeOnGesture);
+        };
+        document.addEventListener('click', resumeOnGesture);
+        document.addEventListener('keydown', resumeOnGesture);
       }
 
       this.sourceNode = this.audioContext.createMediaElementSource(element);
-      this.sourceNode.connect(this.gainNode);
-    } catch {
-      // Already attached or unsupported
+      this.gainNode = this.audioContext.createGain();
+      this.gainNode.gain.value = this.muted ? 0 : this.volume;
+
+      // Create 10 Equalizer Filter Nodes
+      this.filterNodes = this.bands.map((band, idx) => {
+        const filter = this.audioContext!.createBiquadFilter();
+        filter.frequency.value = band.frequency;
+        filter.gain.value = band.gain;
+
+        if (idx === 0) {
+          filter.type = 'lowshelf';
+        } else if (idx === this.bands.length - 1) {
+          filter.type = 'highshelf';
+        } else {
+          filter.type = 'peaking';
+          filter.Q.value = band.q || 1.414;
+        }
+        return filter;
+      });
+
+      // Chain audio graph: Source -> Filter0 -> ... -> Filter9 -> Gain -> Destination
+      let lastNode: AudioNode = this.sourceNode;
+      for (const filter of this.filterNodes) {
+        lastNode.connect(filter);
+        lastNode = filter;
+      }
+      lastNode.connect(this.gainNode);
+      this.gainNode.connect(this.audioContext.destination);
+    } catch (e) {
+      console.warn('WebAudio setup deferred or mock context used:', e);
     }
   }
-
-  /**
-   * Detaches current media element from DSP.
-   */
   public detachMediaElement(): void {
     if (this.sourceNode) {
       try {
         this.sourceNode.disconnect();
-      } catch {
-        // Ignore disconnect error
-      }
+      } catch {}
       this.sourceNode = null;
     }
   }
 
-  /**
-   * Sets master volume (0.0 to 2.0, where >1.0 represents volume boost).
-   */
   public setVolume(val: number): void {
     const clamped = Math.max(MIN_VOLUME, Math.min(MAX_VOLUME, val));
     this.volume = clamped;
-
-    if (!this.muted && this.gainNode && this.audioContext) {
-      try {
-        this.gainNode.gain.setValueAtTime(this.volume, this.audioContext.currentTime);
-      } catch {
-        this.gainNode.gain.value = this.volume;
-      }
+    if (this.muted && clamped > 0) {
+      this.muted = false;
+    }
+    if (this.gainNode && this.audioContext) {
+      this.gainNode.gain.setValueAtTime(this.muted ? 0 : clamped, this.audioContext.currentTime);
     }
   }
 
-  /**
-   * Returns current master volume (0.0 to 2.0).
-   */
   public getVolume(): number {
     return this.volume;
   }
-
-  /**
-   * Sets mute status.
-   */
-  public setMuted(muted: boolean): void {
-    this.muted = muted;
-
-    if (this.gainNode && this.audioContext) {
-      const targetGain = this.muted ? 0 : this.volume;
-      try {
-        this.gainNode.gain.setValueAtTime(targetGain, this.audioContext.currentTime);
-      } catch {
-        this.gainNode.gain.value = targetGain;
-      }
+  public toggleMute(): boolean {
+    this.muted = !this.muted;
+    if (this.muted) {
+      this.previousVolumeBeforeMute = this.volume > 0 ? this.volume : 1.0;
     }
+    if (this.gainNode && this.audioContext) {
+      this.gainNode.gain.setValueAtTime(
+        this.muted ? 0 : this.previousVolumeBeforeMute,
+        this.audioContext.currentTime
+      );
+    }
+    return this.muted;
   }
 
-  /**
-   * Gets mute status.
-   */
   public isMuted(): boolean {
     return this.muted;
   }
-
-  /**
-   * Toggles mute status.
-   */
-  public toggleMute(): boolean {
-    this.setMuted(!this.muted);
-    return this.muted;
+  public setMuted(muted: boolean): void {
+    if (this.muted === muted) return;
+    this.toggleMute();
   }
 
-  /**
-   * Sets the gain for an individual frequency band (by index 0-9).
-   *
-   * @param bandIndex 0-9 corresponding to 32Hz, 64Hz, 125Hz, 250Hz, 500Hz, 1kHz, 2kHz, 4kHz, 8kHz, 16kHz.
-   * @param gainDb Gain in decibels (-12 dB to +12 dB).
-   */
-  public setGain(bandIndex: number, gainDb: number): void {
-    if (bandIndex < 0 || bandIndex >= this.bands.length) {
-      return;
-    }
-
-    const clampedGain = Math.max(MIN_GAIN_DB, Math.min(MAX_GAIN_DB, gainDb));
-    const band = this.bands[bandIndex];
-    if (band) {
-      band.gain = clampedGain;
-    }
-
-    const filterNode = this.filterNodes[bandIndex];
-    if (filterNode && this.audioContext) {
-      try {
-        filterNode.gain.setValueAtTime(clampedGain, this.audioContext.currentTime);
-      } catch {
-        filterNode.gain.value = clampedGain;
-      }
-    }
-
-    this.currentPreset = null; // Custom equalizer curve
-  }
-
-  /**
-   * Gets the gain in dB for a specific band index.
-   */
-  public getGain(bandIndex: number): number {
-    return this.bands[bandIndex]?.gain ?? 0;
-  }
-
-  /**
-   * Applies an equalizer preset by name.
-   */
-  public applyPreset(presetName: string): boolean {
-    const preset = EQUALIZER_PRESETS.find(
-      (p) => p.name.toLowerCase() === presetName.trim().toLowerCase()
-    );
-
-    if (!preset) {
-      return false;
-    }
-
-    for (let i = 0; i < this.bands.length; i++) {
-      const gain = preset.gains[i] ?? 0;
-      const clampedGain = Math.max(MIN_GAIN_DB, Math.min(MAX_GAIN_DB, gain));
-      const band = this.bands[i];
-      if (band) {
-        band.gain = clampedGain;
-      }
-
-      const filterNode = this.filterNodes[i];
-      if (filterNode && this.audioContext) {
-        try {
-          filterNode.gain.setValueAtTime(clampedGain, this.audioContext.currentTime);
-        } catch {
-          filterNode.gain.value = clampedGain;
-        }
-      }
-    }
-
-    this.currentPreset = preset.name;
-    return true;
-  }
-
-  /**
-   * Gets the active preset name or null if custom.
-   */
-  public getCurrentPreset(): string | null {
-    return this.currentPreset;
-  }
-
-  /**
-   * Returns list of all available equalizer presets.
-   */
-  public getPresets(): EqualizerPreset[] {
-    return [...EQUALIZER_PRESETS];
-  }
-
-  /**
-   * Returns a copy of the current 10 equalizer bands configuration.
-   */
-  public getBands(): EqualizerBand[] {
-    return this.bands.map((b) => ({ ...b }));
-  }
-
-  /**
-   * Resets equalizer to Flat preset (0 dB for all bands).
-   */
   public resetEqualizer(): void {
     this.applyPreset('Flat');
   }
 
-  /**
-   * Returns underlying AudioContext if available.
-   */
   public getAudioContext(): AudioContext | null {
     return this.audioContext;
   }
+  public setGain(bandIndex: number, gainDb: number): void {
+    if (bandIndex < 0 || bandIndex >= this.bands.length) return;
+    const clamped = Math.max(MIN_GAIN_DB, Math.min(MAX_GAIN_DB, gainDb));
+    this.bands[bandIndex].gain = clamped;
+    this.currentPreset = null; // custom
 
-  /**
-   * Disposes audio nodes and closes AudioContext.
-   */
-  public dispose(): void {
-    this.detachMediaElement();
-
-    if (this.gainNode) {
-      try {
-        this.gainNode.disconnect();
-      } catch {
-        // Ignore disconnect error
-      }
-      this.gainNode = null;
+    if (this.filterNodes[bandIndex] && this.audioContext) {
+      this.filterNodes[bandIndex].gain.setValueAtTime(clamped, this.audioContext.currentTime);
     }
+  }
+  public getGain(bandIndex: number): number {
+    if (bandIndex < 0 || bandIndex >= this.bands.length) return 0;
+    return this.bands[bandIndex].gain;
+  }
 
+  public applyPreset(presetName: string): boolean {
+    const preset = EQUALIZER_PRESETS.find(
+      (p) => p.name.toLowerCase() === presetName.toLowerCase()
+    );
+    if (!preset) return false;
+
+    this.currentPreset = preset.name;
+    preset.gains.forEach((gain, idx) => {
+      this.setGain(idx, gain);
+    });
+    this.currentPreset = preset.name;
+    return true;
+  }
+
+  public setBitstreaming(enabled: boolean): void {
+    this.isBitstreaming = enabled;
+    // When bitstreaming over HDMI/S-PDIF passthrough is active, bypass EQ processing
+    if (enabled) {
+      this.applyPreset('Flat');
+    }
+  }
+
+  public isBitstreamingEnabled(): boolean {
+    return this.isBitstreaming;
+  }
+
+  public setDialogueEnhancement(boostDb: number): void {
+    this.dialogueBoostDb = Math.max(0, Math.min(12, boostDb));
+  }
+
+  public getDialogueEnhancement(): number {
+    return this.dialogueBoostDb;
+  }
+
+  public getPresets(): readonly EqualizerPreset[] {
+    return EQUALIZER_PRESETS;
+  }
+
+  public getBands(): EqualizerBand[] {
+    return this.bands.map((b) => ({ ...b }));
+  }
+
+  public getCurrentPreset(): string | null {
+    return this.currentPreset;
+  }
+  public dispose(): void {
+    if (this.sourceNode) {
+      try {
+        this.sourceNode.disconnect();
+      } catch {}
+      this.sourceNode = null;
+    }
     for (const filter of this.filterNodes) {
       try {
         filter.disconnect();
-      } catch {
-        // Ignore disconnect error
-      }
+      } catch {}
     }
     this.filterNodes = [];
-
+    if (this.gainNode) {
+      try {
+        this.gainNode.disconnect();
+      } catch {}
+      this.gainNode = null;
+    }
     if (this.audioContext && this.audioContext.state !== 'closed') {
       try {
         this.audioContext.close();
-      } catch {
-        // Ignore close error
-      }
+      } catch {}
       this.audioContext = null;
     }
   }
