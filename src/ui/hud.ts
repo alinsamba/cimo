@@ -482,17 +482,49 @@ export class FloatingHUD {
     const menu = this.elements.aspectRatioMenu;
     if (!menu) return;
 
-    const ratios: AspectRatio[] = ['contain', 'cover', '16:9', '4:3', '21:9', 'fill', 'original'];
+    const ratios: Array<{ id: AspectRatio; label: string; icon: string }> = [
+      { id: 'contain', label: 'CONTAIN', icon: '' },
+      {
+        id: 'cover',
+        label: 'COVER',
+        icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2v14a2 2 0 0 0 2 2h14"></path><path d="M18 22V8a2 2 0 0 0-2-2H2"></path></svg>',
+      },
+      {
+        id: '16:9',
+        label: '16:9',
+        icon: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"></rect></svg>',
+      },
+      {
+        id: '4:3',
+        label: '4:3',
+        icon: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"></rect></svg>',
+      },
+      {
+        id: '21:9',
+        label: '21:9',
+        icon: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="7" width="22" height="10" rx="1.5"></rect></svg>',
+      },
+      {
+        id: 'fill',
+        label: 'FILL',
+        icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line><rect x="3" y="9" width="12" height="12" rx="2"></rect></svg>',
+      },
+      { id: 'original', label: 'ORIGINAL', icon: '' },
+    ];
     const current = this.controller.getState().aspectRatio;
 
     menu.innerHTML = ratios
       .map((r) => {
-        const isSel = r === current;
-        return `<div class="popover-item ${isSel ? 'selected' : ''}" data-ratio="${r}">${r.toUpperCase()}</div>`;
+        const isSel = r.id === current;
+        return `
+          <div class="popover-item ${isSel ? 'selected' : ''}" data-ratio="${r.id}">
+            <span>${r.label}</span>
+            ${r.icon ? `<span class="popover-glyph">${r.icon}</span>` : ''}
+          </div>
+        `;
       })
       .join('');
   }
-
   private bindControllerListeners(): void {
     // Media change
     const onMediaUpdate = (state: PlayerState) => {
